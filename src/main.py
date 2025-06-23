@@ -88,7 +88,8 @@ def main(input_file: Path, output: Optional[Path], target_lang: str,
         if verbose:
             click.echo("📝 Estrazione testo...")
         
-        extractor = TextExtractor()
+        # Usa extractor con glossario del progetto
+        extractor = TextExtractor(project_path=str(input_file.parent))
         text_segments = extractor.extract_translatable_text(processor.stories_data)
         
         if not text_segments:
@@ -229,8 +230,8 @@ def info(input_file: Path):
         click.echo(f"   Stories: {doc_info['stories_count']}")
         click.echo(f"   Nomi stories: {', '.join(doc_info['stories_names'])}")
         
-        # Estrai testo per statistiche
-        extractor = TextExtractor()
+        # Estrai testo per statistiche con glossario
+        extractor = TextExtractor(project_path=str(input_file.parent))
         text_segments = extractor.extract_translatable_text(processor.stories_data)
         
         if text_segments:

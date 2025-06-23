@@ -6,14 +6,35 @@ import re
 from typing import Dict, List, Tuple, Optional
 from xml.etree import ElementTree as ET
 
+# Import del glossario
+try:
+    from config.glossary import TranslationGlossary, load_project_glossary
+except ImportError:
+    # Fallback se il glossario non è disponibile
+    class TranslationGlossary:
+        def is_protected_term(self, text): return False
+        def create_protected_translation_note(self, text): return ""
+    def load_project_glossary(path): return TranslationGlossary()
+
 
 class TextExtractor:
     """Classe per estrarre e processare testo da contenuti IDML"""
     
-    def __init__(self):
-        """Inizializza l'estrattore di testo"""
+    def __init__(self, project_path: Optional[str] = None):
+        """
+        Inizializza l'estrattore di testo
+        
+        Args:
+            project_path: Path del progetto per caricare glossario personalizzato
+        """
         self.text_segments = []
         self.text_mapping = {}
+        
+        # Carica glossario
+        if project_path:
+            self.glossary = load_project_glossary(project_path)
+        else:
+            self.glossary = TranslationGlossary()
         
     def extract_translatable_text(self, stories_data: Dict) -> List[Dict]:
         """
@@ -121,24 +142,139 @@ class TextExtractor:
         """
         if not text or len(text.strip()) < 2:
             return False
+        
+        text_clean = text.strip()
             
         # Esclude testi che sono solo numeri
-        if text.strip().isdigit():
+        if text_clean.isdigit():
             return False
             
         # Esclude testi che sono solo punteggiatura
-        if re.match(r'^[^\w\s]+$', text.strip()):
+        if re.match(r'^[^\w\s]+$', text_clean):
             return False
             
         # Esclude codici e identificatori (es. "ID123", "CODE_ABC")
-        if re.match(r'^[A-Z0-9_]+$', text.strip()):
+        if re.match(r'^[A-Z0-9_]+$', text_clean):
             return False
             
         # Esclude URL e email
-        if re.match(r'https?://|www\.|@.*\.|.*@.*', text.strip()):
+        if re.match(r'https?://|www\.|@.*\.|.*@.*', text_clean):
+            return False
+        
+        # ===== NUOVI FILTRI SPECIFICI IDML =====
+        
+        # Esclude nomi di font comuni
+        if self._is_font_name(text_clean):
+            return False
+            
+        # Esclude pattern IDML tecnici
+        if self._is_idml_technical_pattern(text_clean):
+            return False
+            
+        # Esclude pattern numerazione pagine
+        if self._is_page_number_pattern(text_clean):
+            return False
+            
+        # Esclude colori e swatch IDML
+        if self._is_color_swatch_pattern(text_clean):
+            return False
+        
+        # Controlla glossario termini protetti
+        if self.glossary.is_protected_term(text_clean):
             return False
             
         return True
+    
+    def _is_font_name(self, text: str) -> bool:
+        """Identifica nomi di font"""
+        common_fonts = [
+            'arial', 'helvetica', 'times', 'calibri', 'georgia', 'verdana',
+            'tahoma', 'trebuchet', 'comic sans', 'impact', 'lucida',
+            'courier', 'palatino', 'garamond', 'futura', 'avenir',
+            'source sans', 'source serif', 'open sans', 'roboto',
+            'lato', 'montserrat', 'ubuntu', 'nunito', 'raleway',
+            'metropolis', 'myriad', 'minion', 'proxima', 'gotham'
+        ]
+        
+        text_lower = text.lower()
+        
+        # Controllo esatto
+        if text_lower in common_fonts:
+            return True
+            
+        # Controllo se inizia con nome font + variante
+        for font in common_fonts:
+            if text_lower.startswith(font + ' ') or text_lower.startswith(font + '-'):
+                return True
+                
+        # Pattern font con peso/stile (es. "Arial Bold", "Helvetica Light")
+        if re.match(r'^[A-Za-z]+\s+(regular|bold|light|medium|thin|black|italic|oblique)$', text_lower):
+            return True
+            
+        return False
+    
+    def _is_idml_technical_pattern(self, text: str) -> bool:
+        """Identifica pattern tecnici IDML"""
+        
+        # Swatch patterns
+        if text.startswith('Swatch/') or text.startswith('Color/'):
+            return True
+            
+        # CMYK/RGB color values
+        if re.match(r'^(C|M|Y|K|R|G|B)=\d+', text):
+            return True
+            
+        # Pattern color con valori (es. "C=0 M=0 Y=0 K=9")
+        if re.match(r'^(Color/)?[CMYKRGB]=[0-9\s=CMYKRGB]+$', text):
+            return True
+            
+        # Style references
+        if re.match(r'^(Character|Paragraph)Style/', text):
+            return True
+            
+        # IDML IDs e self references
+        if re.match(r'^[a-z]+[0-9a-f]{4,}$', text.lower()):
+            return True
+            
+        return False
+    
+    def _is_page_number_pattern(self, text: str) -> bool:
+        """Identifica pattern di numerazione pagine"""
+        
+        # Pattern base "pag. N"
+        if re.match(r'^pag\.\s*\d+\.?$', text.lower()):
+            return True
+            
+        # Pattern "p. N" 
+        if re.match(r'^p\.\s*\d+\.?$', text.lower()):
+            return True
+            
+        # Pattern range "pag. N - pag. M"
+        if re.match(r'^>*\s*pag\.\s*\d+\s*-\s*pag\.\s*\d+', text.lower()):
+            return True
+            
+        # Pattern "pagina N"
+        if re.match(r'^pagin[ea]\s+\d+$', text.lower()):
+            return True
+            
+        return False
+    
+    def _is_color_swatch_pattern(self, text: str) -> bool:
+        """Identifica pattern colori e swatch"""
+        
+        # None swatch
+        if text.lower() in ['none', 'swatch/none']:
+            return True
+            
+        # Hex colors
+        if re.match(r'^#[0-9a-f]{3,8}$', text.lower()):
+            return True
+            
+        # Pantone colors
+        if re.match(r'^pantone\s+\d+', text.lower()):
+            return True
+            
+        return False
     
     def _get_element_path(self, element: ET.Element) -> str:
         """
@@ -182,6 +318,13 @@ class TextExtractor:
         for segment in segments:
             # Pulisce e prepara il testo per la traduzione
             cleaned_text = self._clean_text_for_translation(segment['original_text'])
+            
+            # Aggiunge note sui termini protetti se presenti
+            protected_note = self.glossary.create_protected_translation_note(cleaned_text)
+            if protected_note:
+                # Prepende la nota al testo
+                cleaned_text = f"[{protected_note}] {cleaned_text}"
+            
             texts_to_translate.append(cleaned_text)
             
         return texts_to_translate

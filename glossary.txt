@@ -1,0 +1,29 @@
+# Glossario personalizzato per progetto Falz
+# Formato: tipo:termine oppure solo termine (default: prodotto)
+
+# Nomi prodotti
+product:Falz Single
+product:Falz
+product:Single
+product:Myriad
+product:Infinity
+
+# Termini tecnici specifici
+technical:EPDM
+technical:TPO
+technical:kN/m
+technical:kg/m²
+technical:N/mm²
+
+# Marchi e aziende
+product:Würth
+product:Hilti
+product:Simpson
+product:Fischer
+
+# Normative e certificazioni  
+technical:CE
+technical:EN
+technical:DIN
+technical:ISO
+technical:UNI
