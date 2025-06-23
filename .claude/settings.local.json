@@ -5,7 +5,11 @@
       "Bash(cp:*)",
       "Bash(mkdir:*)",
       "Bash(git add:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(python3 -m pip uninstall lxml -y)",
+      "Bash(python3:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)"
     ],
     "deny": []
   }

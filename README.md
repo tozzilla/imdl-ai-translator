@@ -26,18 +26,30 @@ git clone <repository-url>
 cd translate-imdl
 ```
 
-2. **Installa le dipendenze**:
+2. **Crea ambiente virtuale** (raccomandato):
+```bash
+python3 -m venv venv
+source venv/bin/activate  # Su macOS/Linux
+# oppure venv\Scripts\activate su Windows
+```
+
+3. **Installa le dipendenze**:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. **Configura l'API OpenAI**:
+4. **Configura l'API OpenAI**:
 ```bash
 cp .env.example .env
 # Modifica .env inserendo la tua chiave API OpenAI
 ```
 
 ## 🎯 Utilizzo
+
+**Nota**: Ricordati di attivare l'ambiente virtuale prima dell'uso:
+```bash
+source venv/bin/activate  # Su macOS/Linux
+```
 
 ### Comando base
 ```bash

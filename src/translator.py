@@ -191,17 +191,19 @@ IMPORTANT INSTRUCTIONS:
         lines = response.strip().split('\n')
         translations = []
         
+        import re
+        
         for line in lines:
             line = line.strip()
             if not line:
                 continue
                 
-            # Rimuove numerazione se presente (es. "1. ", "1) ", etc.)
-            import re
-            cleaned_line = re.sub(r'^\d+[.)]\s*', '', line)
-            
-            if cleaned_line:
-                translations.append(cleaned_line)
+            # Cerca solo linee che iniziano con numero seguito da punto o parentesi
+            match = re.match(r'^\d+[.)]\s*(.+)', line)
+            if match:
+                translation = match.group(1).strip()
+                if translation:
+                    translations.append(translation)
                 
         # Verifica che il numero di traduzioni sia corretto
         if len(translations) != expected_count:
