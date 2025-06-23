@@ -1,0 +1,257 @@
+"""
+Text Extractor - Estrae e organizza il testo dai file IDML per la traduzione
+"""
+
+import re
+from typing import Dict, List, Tuple, Optional
+from xml.etree import ElementTree as ET
+
+
+class TextExtractor:
+    """Classe per estrarre e processare testo da contenuti IDML"""
+    
+    def __init__(self):
+        """Inizializza l'estrattore di testo"""
+        self.text_segments = []
+        self.text_mapping = {}
+        
+    def extract_translatable_text(self, stories_data: Dict) -> List[Dict]:
+        """
+        Estrae tutto il testo traducibile dalle stories IDML
+        
+        Args:
+            stories_data: Dizionario con i dati delle stories dal IDMLProcessor
+            
+        Returns:
+            Lista di dizionari con testo e metadati per la traduzione
+        """
+        translatable_segments = []
+        segment_id = 0
+        
+        for story_name, story_data in stories_data.items():
+            story_root = story_data['root']
+            
+            # Estrae i segmenti di testo dalla story
+            segments = self._extract_text_segments_from_story(story_root, story_name)
+            
+            for segment in segments:
+                segment['id'] = segment_id
+                segment['story_name'] = story_name
+                translatable_segments.append(segment)
+                segment_id += 1
+                
+        self.text_segments = translatable_segments
+        return translatable_segments
+    
+    def _extract_text_segments_from_story(self, story_root: ET.Element, story_name: str) -> List[Dict]:
+        """
+        Estrae segmenti di testo da una singola story
+        
+        Args:
+            story_root: Root element XML della story
+            story_name: Nome della story
+            
+        Returns:
+            Lista di segmenti di testo con metadati
+        """
+        segments = []
+        
+        # Cerca elementi di testo specifici di IDML
+        text_elements = self._find_text_elements(story_root)
+        
+        for elem_info in text_elements:
+            element = elem_info['element']
+            text_content = elem_info['text']
+            
+            if self._is_translatable_text(text_content):
+                segment = {
+                    'original_text': text_content,
+                    'element_tag': element.tag,
+                    'element_path': self._get_element_path(element),
+                    'attributes': dict(element.attrib),
+                    'text_type': elem_info['text_type'],  # 'text' o 'tail'
+                    'character_count': len(text_content),
+                    'word_count': len(text_content.split())
+                }
+                segments.append(segment)
+                
+        return segments
+    
+    def _find_text_elements(self, root: ET.Element) -> List[Dict]:
+        """
+        Trova tutti gli elementi che contengono testo nell'XML IDML
+        
+        Args:
+            root: Root element da cui cercare
+            
+        Returns:
+            Lista di dizionari con elementi e informazioni sul testo
+        """
+        text_elements = []
+        
+        # Traversa tutti gli elementi nell'albero XML
+        for element in root.iter():
+            # Controlla il testo diretto dell'elemento
+            if element.text and element.text.strip():
+                text_elements.append({
+                    'element': element,
+                    'text': element.text.strip(),
+                    'text_type': 'text'
+                })
+            
+            # Controlla il tail text (testo dopo il tag di chiusura)
+            if element.tail and element.tail.strip():
+                text_elements.append({
+                    'element': element,
+                    'text': element.tail.strip(),
+                    'text_type': 'tail'
+                })
+                
+        return text_elements
+    
+    def _is_translatable_text(self, text: str) -> bool:
+        """
+        Determina se un testo è traducibile (esclude codici, numeri puri, etc.)
+        
+        Args:
+            text: Testo da valutare
+            
+        Returns:
+            True se il testo è traducibile
+        """
+        if not text or len(text.strip()) < 2:
+            return False
+            
+        # Esclude testi che sono solo numeri
+        if text.strip().isdigit():
+            return False
+            
+        # Esclude testi che sono solo punteggiatura
+        if re.match(r'^[^\w\s]+$', text.strip()):
+            return False
+            
+        # Esclude codici e identificatori (es. "ID123", "CODE_ABC")
+        if re.match(r'^[A-Z0-9_]+$', text.strip()):
+            return False
+            
+        # Esclude URL e email
+        if re.match(r'https?://|www\.|@.*\.|.*@.*', text.strip()):
+            return False
+            
+        return True
+    
+    def _get_element_path(self, element: ET.Element) -> str:
+        """
+        Ottiene il path XPath dell'elemento nell'albero XML
+        
+        Args:
+            element: Elemento di cui ottenere il path
+            
+        Returns:
+            Stringa rappresentante il path dell'elemento
+        """
+        path_parts = []
+        current = element
+        
+        # Risale l'albero per costruire il path
+        while current is not None:
+            tag = current.tag
+            # Aggiungi attributi identificativi se presenti
+            if 'Self' in current.attrib:
+                tag += f"[@Self='{current.attrib['Self']}']"
+            elif 'id' in current.attrib:
+                tag += f"[@id='{current.attrib['id']}']"
+                
+            path_parts.insert(0, tag)
+            current = current.getparent() if hasattr(current, 'getparent') else None
+            
+        return '/' + '/'.join(path_parts)
+    
+    def prepare_for_translation(self, segments: List[Dict]) -> List[str]:
+        """
+        Prepara i segmenti di testo per l'invio al servizio di traduzione
+        
+        Args:
+            segments: Lista di segmenti estratti
+            
+        Returns:
+            Lista di stringhe pronte per la traduzione
+        """
+        texts_to_translate = []
+        
+        for segment in segments:
+            # Pulisce e prepara il testo per la traduzione
+            cleaned_text = self._clean_text_for_translation(segment['original_text'])
+            texts_to_translate.append(cleaned_text)
+            
+        return texts_to_translate
+    
+    def _clean_text_for_translation(self, text: str) -> str:
+        """
+        Pulisce il testo rimuovendo caratteri speciali che potrebbero interferire
+        
+        Args:
+            text: Testo da pulire
+            
+        Returns:
+            Testo pulito per la traduzione
+        """
+        # Rimuove caratteri di controllo invisibili
+        cleaned = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x84\x86-\x9f]', '', text)
+        
+        # Normalizza spazi multipli
+        cleaned = re.sub(r'\s+', ' ', cleaned)
+        
+        # Rimuove spazi iniziali/finali
+        cleaned = cleaned.strip()
+        
+        return cleaned
+    
+    def map_translations_to_segments(self, segments: List[Dict], translations: List[str]) -> Dict[str, List[str]]:
+        """
+        Mappa le traduzioni ricevute ai segmenti originali organizzati per story
+        
+        Args:
+            segments: Segmenti originali estratti
+            translations: Lista delle traduzioni ricevute
+            
+        Returns:
+            Dizionario story_name -> lista traduzioni per quella story
+        """
+        if len(segments) != len(translations):
+            raise ValueError(f"Numero di segmenti ({len(segments)}) != numero traduzioni ({len(translations)})")
+        
+        story_translations = {}
+        
+        for i, segment in enumerate(segments):
+            story_name = segment['story_name']
+            translation = translations[i]
+            
+            if story_name not in story_translations:
+                story_translations[story_name] = []
+                
+            story_translations[story_name].append(translation)
+            
+        return story_translations
+    
+    def get_translation_stats(self, segments: List[Dict]) -> Dict[str, int]:
+        """
+        Calcola statistiche sui testi da tradurre
+        
+        Args:
+            segments: Lista di segmenti estratti
+            
+        Returns:
+            Dizionario con statistiche
+        """
+        total_chars = sum(segment['character_count'] for segment in segments)
+        total_words = sum(segment['word_count'] for segment in segments)
+        stories_count = len(set(segment['story_name'] for segment in segments))
+        
+        return {
+            'total_segments': len(segments),
+            'total_characters': total_chars,
+            'total_words': total_words,
+            'stories_count': stories_count,
+            'avg_chars_per_segment': total_chars // len(segments) if segments else 0
+        }

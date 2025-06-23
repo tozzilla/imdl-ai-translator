@@ -1,0 +1,7 @@
+SimpleIDML>=0.92.9
+openai>=1.0.0
+click>=8.0.0
+python-dotenv>=1.0.0
+lxml>=4.9.0
+pytest>=7.0.0
+pytest-cov>=4.0.0
