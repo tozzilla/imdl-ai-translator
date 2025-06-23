@@ -100,7 +100,7 @@ class TextExtractor:
     
     def _find_text_elements(self, root: ET.Element) -> List[Dict]:
         """
-        Trova tutti gli elementi che contengono testo nell'XML IDML
+        Trova SOLO gli elementi Content che contengono testo traducibile nell'XML IDML
         
         Args:
             root: Root element da cui cercare
@@ -110,24 +110,41 @@ class TextExtractor:
         """
         text_elements = []
         
-        # Traversa tutti gli elementi nell'albero XML
+        # NUOVO APPROCCIO: cerca specificamente elementi Content dentro CharacterStyleRange
+        # Struttura IDML: Story > ParagraphStyleRange > CharacterStyleRange > Content
+        
+        # Rimuovi namespace per semplificare la ricerca
+        def remove_namespace(tag):
+            return tag.split('}')[-1] if '}' in tag else tag
+        
+        # Cerca tutti i CharacterStyleRange
         for element in root.iter():
-            # Controlla il testo diretto dell'elemento
-            if element.text and element.text.strip():
-                text_elements.append({
-                    'element': element,
-                    'text': element.text.strip(),
-                    'text_type': 'text'
-                })
+            element_tag = remove_namespace(element.tag)
             
-            # Controlla il tail text (testo dopo il tag di chiusura)
-            if element.tail and element.tail.strip():
-                text_elements.append({
-                    'element': element,
-                    'text': element.tail.strip(),
-                    'text_type': 'tail'
-                })
-                
+            if element_tag == 'CharacterStyleRange':
+                # Cerca elementi Content dentro questo CharacterStyleRange
+                for content_elem in element:
+                    content_tag = remove_namespace(content_elem.tag)
+                    
+                    if content_tag == 'Content':
+                        # Estrai il testo solo dai Content elements
+                        if content_elem.text and content_elem.text.strip():
+                            text_elements.append({
+                                'element': content_elem,
+                                'text': content_elem.text.strip(),
+                                'text_type': 'text',
+                                'parent_style': element.get('AppliedCharacterStyle', 'default')
+                            })
+                        
+                        # Content elements non dovrebbero avere tail text, ma controlliamo comunque
+                        if content_elem.tail and content_elem.tail.strip():
+                            text_elements.append({
+                                'element': content_elem,
+                                'text': content_elem.tail.strip(),
+                                'text_type': 'tail',
+                                'parent_style': element.get('AppliedCharacterStyle', 'default')
+                            })
+        
         return text_elements
     
     def _is_translatable_text(self, text: str) -> bool:
