@@ -33,6 +33,9 @@ class TranslationGlossary:
             'CE', 'EN', 'DIN', 'ISO', 'UNI',
             'kN', 'kN/m', 'kg/m²', 'mm', 'cm', 'm',
             'N/mm²', 'MPa', 'GPa', 'Hz',
+            # Aggiunte per strumenti e avvertenze
+            'EVITARE', 'AVVERTENZE', 'ATTENZIONE', 'PERICOLO',
+            'WARNING', 'CAUTION', 'DANGER', 'AVOID',
         }
         
         # Codici e riferimenti
@@ -67,6 +70,19 @@ class TranslationGlossary:
         for pattern in self.reference_patterns:
             if re.match(pattern, text_clean):
                 return True
+        
+        # Controllo prodotti con varianti (es. "Dachziegel Light")
+        words = text_clean.lower().split()
+        if len(words) >= 2:
+            # Controlla se la prima parola è un prodotto protetto
+            first_word = words[0]
+            if first_word in self.product_names:
+                return True
+            
+            # Controlla se qualsiasi parola è un prodotto protetto
+            for word in words:
+                if word in self.product_names:
+                    return True
                 
         return False
     

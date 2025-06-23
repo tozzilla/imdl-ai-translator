@@ -196,7 +196,32 @@ class TextExtractor:
             'metropolis', 'myriad', 'minion', 'proxima', 'gotham'
         ]
         
+        # Parole che NON sono mai font anche se seguite da weight
+        non_font_words = [
+            # Strumenti e attrezzi
+            'dachziegel', 'silikonpistole', 'drehmomentschlüssel', 'hammer', 'screwdriver',
+            'drill', 'saw', 'chisel', 'wrench', 'pliers', 'level', 'measure',
+            'schraubendreher', 'bohrer', 'säge', 'meißel', 'wasserwaage',
+            
+            # Materiali
+            'concrete', 'steel', 'wood', 'plastic', 'metal', 'glass',
+            'beton', 'stahl', 'holz', 'plastik', 'metall', 'glas',
+            
+            # Colori 
+            'red', 'blue', 'green', 'yellow', 'black', 'white',
+            'rot', 'blau', 'grün', 'gelb', 'schwarz', 'weiß',
+            
+            # Altri oggetti comuni
+            'window', 'door', 'roof', 'wall', 'floor', 'ceiling',
+            'fenster', 'tür', 'dach', 'wand', 'boden', 'decke'
+        ]
+        
         text_lower = text.lower()
+        
+        # Controllo se inizia con parola che non è mai un font
+        for non_font in non_font_words:
+            if text_lower.startswith(non_font + ' ') or text_lower.startswith(non_font + '-'):
+                return False
         
         # Controllo esatto
         if text_lower in common_fonts:
@@ -207,9 +232,17 @@ class TextExtractor:
             if text_lower.startswith(font + ' ') or text_lower.startswith(font + '-'):
                 return True
                 
-        # Pattern font con peso/stile (es. "Arial Bold", "Helvetica Light")
-        if re.match(r'^[A-Za-z]+\s+(regular|bold|light|medium|thin|black|italic|oblique)$', text_lower):
-            return True
+        # Pattern font con peso/stile - ma solo per parole che sembrano realmente font
+        # Evitiamo parole tedesche lunghe o composte
+        if len(text.split()) == 2:  # Solo due parole
+            base_word = text.split()[0].lower()
+            weight = text.split()[1].lower()
+            
+            if (weight in ['regular', 'bold', 'light', 'medium', 'thin', 'black', 'italic', 'oblique'] and
+                base_word not in non_font_words and 
+                len(base_word) <= 12 and  # Font names are usually short
+                not any(char in base_word for char in 'äöüß')):  # Avoid German compound words
+                return True
             
         return False
     

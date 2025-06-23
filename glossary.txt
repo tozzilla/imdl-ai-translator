@@ -8,12 +8,24 @@ product:Single
 product:Myriad
 product:Infinity
 
+# Strumenti (che non devono essere tradotti come font)
+product:Dachziegel
+product:Silikonpistole  
+product:Drehmomentschlüssel
+product:Hammer
+product:Schraubendreher
+product:Bohrer
+product:Säge
+
 # Termini tecnici specifici
 technical:EPDM
 technical:TPO
 technical:kN/m
 technical:kg/m²
 technical:N/mm²
+technical:EVITARE
+technical:AVVERTENZE
+technical:ATTENZIONE
 
 # Marchi e aziende
 product:Würth
