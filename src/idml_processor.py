@@ -123,14 +123,39 @@ class IDMLProcessor:
         if not self.idml_package:
             raise RuntimeError("IDML non caricato. Chiamare load_idml() prima.")
         
-        # Aggiorna le stories nel package con il contenuto tradotto
-        for story_path, story_data in self.stories_data.items():
-            updated_xml = ET.tostring(story_data['root'], encoding='unicode')
-            # Aggiorna il file nel package ZIP
-            self.idml_package.writestr(story_path, updated_xml)
+        import tempfile
+        import shutil
+        import zipfile
         
-        # Salva il package modificato
-        self.idml_package.save(output_path)
+        # Crea un file temporaneo per il nuovo IDML
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.idml') as temp_file:
+            temp_path = temp_file.name
+        
+        try:
+            # Crea un nuovo file ZIP con il contenuto modificato
+            with zipfile.ZipFile(temp_path, 'w', zipfile.ZIP_DEFLATED) as new_zip:
+                # Copia tutti i file dal package originale
+                for file_info in self.idml_package.infolist():
+                    file_path = file_info.filename
+                    
+                    # Se è una story che abbiamo modificato, usa il contenuto tradotto
+                    if file_path in self.stories_data:
+                        updated_xml = ET.tostring(self.stories_data[file_path]['root'], encoding='unicode')
+                        new_zip.writestr(file_info, updated_xml)
+                    else:
+                        # Copia il file originale
+                        original_content = self.idml_package.read(file_path)
+                        new_zip.writestr(file_info, original_content)
+            
+            # Sposta il file temporaneo alla destinazione finale
+            shutil.move(temp_path, output_path)
+            
+        except Exception as e:
+            # Cleanup in caso di errore
+            import os
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+            raise e
     
     def get_document_info(self) -> Dict[str, any]:
         """

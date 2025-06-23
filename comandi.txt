@@ -1,0 +1,6 @@
+
+source venv/bin/activate
+
+python src/main.py translate Brochure.idml -t de --estimate-cost                
+
+python src/main.py translate Brochure.idml -t de
