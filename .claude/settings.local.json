@@ -9,7 +9,8 @@
       "Bash(python3 -m pip uninstall lxml -y)",
       "Bash(python3:*)",
       "Bash(source:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(python:*)"
     ],
     "deny": []
   }

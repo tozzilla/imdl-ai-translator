@@ -40,19 +40,23 @@ class IDMLProcessor:
     
     def _extract_stories(self) -> None:
         """Estrae le stories (contenuti testuali) dal file IDML"""
-        stories_dir = self.idml_package.stories
+        stories_list = self.idml_package.stories
         
-        for story_name in stories_dir:
+        for story_path in stories_list:
             try:
-                story_content = stories_dir[story_name]
+                # Ottieni il contenuto della story usando il path
+                story_content = self.idml_package.read(story_path)
+                if isinstance(story_content, bytes):
+                    story_content = story_content.decode('utf-8')
+                
                 # Parse XML content
                 story_root = ET.fromstring(story_content)
-                self.stories_data[story_name] = {
+                self.stories_data[story_path] = {
                     'root': story_root,
                     'original_content': story_content
                 }
-            except ET.ParseError as e:
-                print(f"Warning: Errore parsing story {story_name}: {e}")
+            except (ET.ParseError, Exception) as e:
+                print(f"Warning: Errore parsing story {story_path}: {e}")
                 continue
     
     def get_text_content(self) -> Dict[str, List[str]]:
@@ -120,9 +124,10 @@ class IDMLProcessor:
             raise RuntimeError("IDML non caricato. Chiamare load_idml() prima.")
         
         # Aggiorna le stories nel package con il contenuto tradotto
-        for story_name, story_data in self.stories_data.items():
+        for story_path, story_data in self.stories_data.items():
             updated_xml = ET.tostring(story_data['root'], encoding='unicode')
-            self.idml_package.stories[story_name] = updated_xml
+            # Aggiorna il file nel package ZIP
+            self.idml_package.writestr(story_path, updated_xml)
         
         # Salva il package modificato
         self.idml_package.save(output_path)
