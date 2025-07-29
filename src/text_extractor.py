@@ -162,16 +162,43 @@ class TextExtractor:
         
         text_clean = text.strip()
             
-        # Esclude testi che sono solo numeri
-        if text_clean.isdigit():
-            return False
+        # NON escludere più numeri semplici!
+        # I numeri di pagina nel documento (es. "16", "17") sono contenuto valido
+        # che deve essere preservato nella traduzione
+        # if text_clean.isdigit():
+        #     return False
             
         # Esclude testi che sono solo punteggiatura
         if re.match(r'^[^\w\s]+$', text_clean):
             return False
             
         # Esclude codici e identificatori (es. "ID123", "CODE_ABC")
-        if re.match(r'^[A-Z0-9_]+$', text_clean):
+        # MA NON parole italiane comuni che potrebbero essere in maiuscolo
+        # E NON esclude numeri puri (che devono essere preservati)
+        if re.match(r'^[A-Z0-9_]+$', text_clean) and not text_clean.isdigit():
+            # Lista di parole italiane comuni che devono essere tradotte anche se in maiuscolo
+            italian_words_to_translate = {
+                'EVITARE', 'LEGNO', 'CALCESTRUZZO', 'ACCIAIO', 'METALLO', 'PLASTICA', 'VETRO',
+                'INSTALLAZIONE', 'MONTAGGIO', 'FISSAGGIO', 'SICUREZZA', 'PROTEZIONE', 
+                'ATTENZIONE', 'PERICOLO', 'AVVERTENZA', 'MANUALE', 'ISTRUZIONI',
+                'SISTEMA', 'ELEMENTO', 'COMPONENTE', 'DISPOSITIVO', 'STRUTTURA',
+                'SUPERFICIE', 'MATERIALE', 'PRODOTTO', 'UTILIZZARE', 'VERIFICARE',
+                'CONTROLLARE', 'ASSICURARE', 'SEGUIRE', 'RISPETTARE',
+                # Aggiunte nuove parole non tradotte
+                'INDICE', 'INTRODUZIONE', 'AVVERTENZE', 'MARCATURA', 'ASSISTENZA',
+                'CAPITOLO', 'SEZIONE', 'PARAGRAFO', 'PAGINA', 'FIGURA', 'TABELLA',
+                'ESEMPIO', 'NOTA', 'IMPORTANTE', 'AVVISO', 'INFORMAZIONE',
+                'CONTENUTO', 'SOMMARIO', 'APPENDICE', 'ALLEGATO', 'RIFERIMENTO',
+                'DESCRIZIONE', 'SPECIFICA', 'REQUISITO', 'PROCEDURA', 'OPERAZIONE',
+                # Nuove aggiunte richieste
+                'FISSAGGI', 'CODICE', 'PARTE', 'POSIZIONE', 'FINITURA'
+            }
+            
+            # Se è una parola italiana comune, deve essere tradotta
+            if text_clean in italian_words_to_translate:
+                return True
+            
+            # Altrimenti escludi come codice/identificatore
             return False
             
         # Esclude URL e email
@@ -289,22 +316,25 @@ class TextExtractor:
         return False
     
     def _is_page_number_pattern(self, text: str) -> bool:
-        """Identifica pattern di numerazione pagine"""
+        """Identifica pattern di numerazione pagine che NON devono essere tradotti"""
         
-        # Pattern base "pag. N"
-        if re.match(r'^pag\.\s*\d+\.?$', text.lower()):
+        # CRITICO: Dobbiamo distinguere tra:
+        # 1. Numeri di pagina che sono CONTENUTO (da preservare): "16", "17" nel testo
+        # 2. Riferimenti che devono essere tradotti: "pag. 16", ">> pag. 16 - pag. 19" 
+        # 3. Numerazione automatica da escludere: numeri isolati senza contesto
+        
+        text_clean = text.strip()
+        
+        # NON escludere più i numeri standalone!
+        # I numeri di pagina nel documento sono contenuto valido che deve rimanere
+        
+        # Esclude SOLO pattern molto specifici che sono chiaramente tecnici:
+        # - Numeri molto lunghi (probabilmente ID)
+        if re.match(r'^\d{4,}$', text_clean):
             return True
             
-        # Pattern "p. N" 
-        if re.match(r'^p\.\s*\d+\.?$', text.lower()):
-            return True
-            
-        # Pattern range "pag. N - pag. M"
-        if re.match(r'^>*\s*pag\.\s*\d+\s*-\s*pag\.\s*\d+', text.lower()):
-            return True
-            
-        # Pattern "pagina N"
-        if re.match(r'^pagin[ea]\s+\d+$', text.lower()):
+        # - Numeri con pattern ID (es. "00123", "0001")
+        if re.match(r'^0+\d+$', text_clean) and len(text_clean) > 2:
             return True
             
         return False

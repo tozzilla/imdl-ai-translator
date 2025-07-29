@@ -49,10 +49,15 @@ Thumbs.db
 
 # Project specific
 temp/
+temp_*/
+final_verification/
 logs/
 output/
 backup/
 *.idml.bak
+
+# IDML files (InDesign documents - usually large binary files)
+*.idml
 
 # Test coverage
 .coverage

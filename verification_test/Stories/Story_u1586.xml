@@ -1,0 +1,14 @@
+<ns0:Story xmlns:ns0="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="20.4">
+	<Story Self="u1586" UserText="true" IsEndnoteStory="false" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+		<StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection" />
+		<InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false" />
+		<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle" HyphenationZone="93.11040000000001" RuleAboveLineWeight="2.5864000000000003" RuleBelowLineWeight="2.5864000000000003" Justification="CenterAlign" SplitColumnInsideGutter="15.518400000000002" ParagraphBorderTopLeftCornerRadius="31.036800000000003" ParagraphBorderTopRightCornerRadius="31.036800000000003" ParagraphBorderBottomLeftCornerRadius="31.036800000000003" ParagraphBorderBottomRightCornerRadius="31.036800000000003" ParagraphShadingTopLeftCornerRadius="31.036800000000003" ParagraphShadingTopRightCornerRadius="31.036800000000003" ParagraphShadingBottomLeftCornerRadius="31.036800000000003" ParagraphShadingBottomRightCornerRadius="31.036800000000003" ParagraphBorderTopLineWeight="2.5864000000000003" ParagraphBorderBottomLineWeight="2.5864000000000003" ParagraphBorderLeftLineWeight="2.5864000000000003" ParagraphBorderRightLineWeight="2.5864000000000003">
+			<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Black" PointSize="103.456" StrokeWeight="2.5864000000000003" MiterLimit="10.345600000000001" RubyFontSize="-2.5864000000000003" KentenFontSize="-2.5864000000000003">
+				<Properties>
+					<AppliedFont type="string">Metropolis</AppliedFont>
+				</Properties>
+				<Content>WALL</Content>
+			</CharacterStyleRange>
+		</ParagraphStyleRange>
+	</Story>
+</ns0:Story>

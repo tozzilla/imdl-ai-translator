@@ -1,6 +1,80 @@
 
+1.
 source venv/bin/activate
 
-python src/main.py translate Brochure.idml -t de --estimate-cost                
+2.
 
-python src/main.py translate Brochure.idml -t de
+# Standard translation (all features enabled)
+  
+python3 src/main.py translate SafeGuard_Smart.idml -t de --model gpt-4-turbo
+
+python3 src/main.py translate SafeGuard_Smart.idml -t de --model gpt-4-turbo --context-template safety_manual --check-consistency --verbose
+
+# Translation with OVERFLOW PREVENTION 🆕
+python3 src/main.py translate SafeGuard_Smart.idml -t de --model gpt-4-turbo --prevent-overflow --verbose
+
+python3 src/main.py translate Skyfix-Z.idml -t de --model gpt-4-turbo --prevent-overflow --max-expansion 25 --verbose
+
+# Overflow prevention with custom expansion limit
+python3 src/main.py translate SafeGuard_Smart.idml -t de --model gpt-4-turbo --prevent-overflow --max-expansion 20 --compression-mode compact
+
+# Ultra-compact mode for heavily constrained layouts
+python3 src/main.py translate document.idml -t de --model gpt-4-turbo --prevent-overflow --compression-mode ultra_compact --verbose
+
+  
+# Batch translation for consistency
+  
+python3 src/main.py batch *.idml -t de --model gpt-4-turbo --check-consistency --verbose
+
+# Batch translation with overflow prevention
+python3 src/main.py batch *.idml -t de --model gpt-4-turbo --prevent-overflow --check-consistency --verbose
+
+  
+# Check Translation Memory stats
+  
+python3 src/main.py tm --stats
+
+# pulizia cache
+
+python3 clear_cache.py        # Solo Translation Memory
+
+python3 clear_cache.py --all  # Tutte le cache
+
+# ============================
+# OVERFLOW PREVENTION FEATURES 🆕
+# ============================
+
+# Analyze document for overflow risks (preview mode)
+python3 src/main.py analyze SafeGuard_Smart.idml -t de --overflow-report
+
+# Test translation with different compression modes
+python3 src/main.py translate test.idml -t de --compression-mode normal    # Standard
+python3 src/main.py translate test.idml -t de --compression-mode compact   # Space-efficient  
+python3 src/main.py translate test.idml -t de --compression-mode ultra_compact  # Maximum compression
+
+# Language-specific expansion limits
+python3 src/main.py translate doc.idml -t de --max-expansion 30  # German (default: 30%)
+python3 src/main.py translate doc.idml -t en --max-expansion 10  # English (default: 10%)
+python3 src/main.py translate doc.idml -t fr --max-expansion 15  # French (default: 15%)
+
+# Generate overflow prevention report
+python3 src/main.py translate doc.idml -t de --prevent-overflow --overflow-report --verbose
+
+# ============================
+# OVERFLOW SYSTEM COMPONENTS
+# ============================
+
+# Key Features:
+# - Pre-translation frame analysis
+# - Dynamic compression mode selection
+# - German technical abbreviations
+# - Progressive text compression strategies
+# - Intelligent truncation as fallback
+# - Frame property adjustments (font size, margins, dimensions)
+
+# Compression Strategies Applied:
+# 1. Technical abbreviations (Installation → Install., Montage → Mont.)
+# 2. Non-essential word removal (articles, fillers)
+# 3. Measurement compaction (mm, cm, kg)
+# 4. Grammatical reductions (verbose → concise constructions)
+# 5. Intelligent truncation (sentence/word boundaries)

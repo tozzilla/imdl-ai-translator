@@ -1,0 +1,17 @@
+<ns0:Story xmlns:ns0="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="20.4">
+	<Story Self="u86ce" UserText="true" IsEndnoteStory="false" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+		<StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection" />
+		<InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false" />
+		<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle" Hyphenation="false" HyphenationZone="28.26" RuleAboveLineWeight="0.785" RuleBelowLineWeight="0.785" SplitColumnInsideGutter="4.71" ParagraphBorderTopLeftCornerRadius="9.42" ParagraphBorderTopRightCornerRadius="9.42" ParagraphBorderBottomLeftCornerRadius="9.42" ParagraphBorderBottomRightCornerRadius="9.42" ParagraphShadingTopLeftCornerRadius="9.42" ParagraphShadingTopRightCornerRadius="9.42" ParagraphShadingBottomLeftCornerRadius="9.42" ParagraphShadingBottomRightCornerRadius="9.42" ParagraphBorderTopLineWeight="0.785" ParagraphBorderBottomLineWeight="0.785" ParagraphBorderLeftLineWeight="0.785" ParagraphBorderRightLineWeight="0.785">
+			<Properties>
+				<SameParaStyleSpacing type="unit">-0.785</SameParaStyleSpacing>
+			</Properties>
+			<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Bold Italic" PointSize="9.42" StrokeWeight="0.785" MiterLimit="3.14" RubyFontSize="-0.785" KentenFontSize="-0.785">
+				<Properties>
+					<AppliedFont type="string">Metropolis</AppliedFont>
+				</Properties>
+				<Content>&gt;&gt; pag. 12 - pag. 13</Content>
+			</CharacterStyleRange>
+		</ParagraphStyleRange>
+	</Story>
+</ns0:Story>

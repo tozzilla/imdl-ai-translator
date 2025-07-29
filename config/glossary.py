@@ -96,28 +96,45 @@ class TranslationGlossary:
     
     def load_custom_glossary(self, file_path: str) -> None:
         """
-        Carica un glossario personalizzato da file
+        Carica un glossario personalizzato da file con supporto migliorato
         
         Args:
             file_path: Path al file glossario
         """
+        loaded_terms = 0
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
-                for line in f:
+                for line_num, line in enumerate(f, 1):
                     line = line.strip()
                     if line and not line.startswith('#'):
-                        # Formato: tipo:termine
-                        if ':' in line:
-                            term_type, term = line.split(':', 1)
-                            if term_type.lower() == 'product':
-                                self.add_product_name(term)
-                            elif term_type.lower() == 'technical':
-                                self.add_technical_term(term)
-                        else:
-                            # Default: prodotto
-                            self.add_product_name(line)
+                        try:
+                            # Formato: tipo:termine
+                            if ':' in line:
+                                term_type, term = line.split(':', 1)
+                                term = term.strip()
+                                term_type = term_type.strip().lower()
+                                
+                                if term_type == 'product':
+                                    self.add_product_name(term)
+                                    loaded_terms += 1
+                                elif term_type in ['technical', 'material', 'certification', 'professional']:
+                                    self.add_technical_term(term)
+                                    loaded_terms += 1
+                                else:
+                                    print(f"Warning: Tipo termine sconosciuto '{term_type}' alla riga {line_num}")
+                            else:
+                                # Default: prodotto
+                                self.add_product_name(line)
+                                loaded_terms += 1
+                        except ValueError as e:
+                            print(f"Warning: Errore parsing riga {line_num}: {line} - {e}")
+                            
+            print(f"✅ Caricati {loaded_terms} termini protetti dal glossario")
+            
         except FileNotFoundError:
-            pass  # Glossario opzionale
+            print(f"⚠️  Glossario non trovato: {file_path}")
+        except Exception as e:
+            print(f"❌ Errore caricamento glossario: {e}")
     
     def get_protected_terms_in_text(self, text: str) -> List[str]:
         """
@@ -168,12 +185,13 @@ def is_protected_term(text: str) -> bool:
     return default_glossary.is_protected_term(text)
 
 
-def load_project_glossary(project_path: str) -> TranslationGlossary:
+def load_project_glossary(project_path: str, domain: str = None) -> TranslationGlossary:
     """
-    Carica glossario specifico per progetto
+    Carica glossario specifico per progetto con supporto domini
     
     Args:
         project_path: Path alla directory del progetto
+        domain: Dominio specifico (safety, construction, technical)
         
     Returns:
         Istanza glossario configurata
@@ -182,19 +200,64 @@ def load_project_glossary(project_path: str) -> TranslationGlossary:
     
     glossary = TranslationGlossary()
     
-    # Cerca file glossario nella directory del progetto
-    glossary_files = [
+    # 1. Carica glossario base del progetto
+    base_glossary_files = [
         os.path.join(project_path, 'glossary.txt'),
         os.path.join(project_path, 'config', 'glossary.txt'),
         os.path.join(project_path, '.glossary'),
     ]
     
-    for file_path in glossary_files:
+    glossary_loaded = False
+    for file_path in base_glossary_files:
         if os.path.exists(file_path):
+            print(f"📚 Caricamento glossario base: {file_path}")
             glossary.load_custom_glossary(file_path)
+            glossary_loaded = True
             break
     
+    # 2. Carica glossario specifico per dominio se specificato
+    if domain:
+        domain_files = [
+            os.path.join(project_path, f'glossary_{domain}.txt'),
+            os.path.join(project_path, 'config', f'glossary_{domain}.txt'),
+        ]
+        
+        for file_path in domain_files:
+            if os.path.exists(file_path):
+                print(f"🎯 Caricamento glossario dominio '{domain}': {file_path}")
+                glossary.load_custom_glossary(file_path)
+                break
+    
+    # 3. Auto-detect dominio da nomi file IDML se non specificato
+    if not domain and project_path:
+        idml_files = [f for f in os.listdir(project_path) if f.lower().endswith('.idml')]
+        detected_domain = _detect_domain_from_files(idml_files)
+        
+        if detected_domain:
+            print(f"🔍 Dominio rilevato automaticamente: {detected_domain}")
+            domain_file = os.path.join(project_path, f'glossary_{detected_domain}.txt')
+            if os.path.exists(domain_file):
+                glossary.load_custom_glossary(domain_file)
+    
+    if not glossary_loaded:
+        print("⚠️  Nessun glossario trovato - usando solo termini predefiniti")
+    
     return glossary
+
+
+def _detect_domain_from_files(filenames: list) -> str:
+    """Rileva automaticamente il dominio dai nomi dei file"""
+    safety_keywords = ['safeguard', 'safety', 'sicurezza', 'anticaduta', 'protezione']
+    construction_keywords = ['skyfix', 'riwega', 'dach', 'roof', 'tetto', 'construction']
+    
+    filename_text = ' '.join(filenames).lower()
+    
+    if any(keyword in filename_text for keyword in safety_keywords):
+        return 'safety'
+    elif any(keyword in filename_text for keyword in construction_keywords):
+        return 'construction'
+    
+    return None
 
 
 if __name__ == '__main__':

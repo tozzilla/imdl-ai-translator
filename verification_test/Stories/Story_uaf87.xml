@@ -1,0 +1,21 @@
+<ns0:Story xmlns:ns0="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="20.4">
+	<Story Self="uaf87" UserText="true" IsEndnoteStory="false" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+		<StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection" />
+		<InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false" />
+		<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle" LeftIndent="5.669291338582678" RightIndent="5.669291338582678" Hyphenation="false" Justification="CenterAlign">
+			<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Bold" AppliedLanguage="$ID/German">
+				<Properties>
+					<AppliedFont type="string">Metropolis</AppliedFont>
+				</Properties>
+				<Content>E</Content>
+				<Br />
+			</CharacterStyleRange>
+			<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Black" PointSize="7" AppliedLanguage="$ID/German">
+				<Properties>
+					<AppliedFont type="string">Metropolis</AppliedFont>
+				</Properties>
+				<Content>Paralleler Fall</Content>
+			</CharacterStyleRange>
+		</ParagraphStyleRange>
+	</Story>
+</ns0:Story>

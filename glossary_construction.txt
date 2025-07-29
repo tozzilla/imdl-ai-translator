@@ -1,0 +1,87 @@
+# Glossario specifico per settore edile/costruzioni
+# Construction and building specific terminology
+
+# Prodotti RIWEGA - nomi specifici NON tradurre
+product:LUX-top
+product:RIALTO
+product:Dynamic
+product:RED
+product:REDbau
+product:Protector Line
+product:Superior Line
+product:Eurostandard Line
+product:AIR Stop Line
+product:eternitycomfort
+product:planus
+product:EVALON
+
+# Sistemi di copertura
+technical:Steildach
+technical:Flachdach
+technical:Gründach
+technical:Warmdach
+technical:Kaltdach
+technical:Umkehrdach
+
+# Materiali edili - terminologia tecnica
+material:EPDM
+material:TPO
+material:PVC
+material:PIB
+material:Dampfbremse
+material:Dampfsperre
+material:Unterspannbahn
+material:Unterdeckbahn
+material:Konterlattung
+material:Traglattung
+
+# Valori tecnici edili
+technical:sd-Wert
+technical:μ-Wert
+technical:U-Wert
+technical:λ-Wert
+technical:Wassersäule
+technical:g/m²
+technical:kg/m²
+technical:mm WS
+technical:Pa
+
+# Strumenti edili specifici
+product:Dachziegel
+product:Silikonpistole
+product:Drehmomentschlüssel
+product:Nagler
+product:Tackerpistole
+product:Heißluftgebläse
+
+# Sistemi di fissaggio
+technical:Tellerkopfschraube
+technical:Spenglerschraube
+technical:Holzschraube
+technical:Bohrschraube
+technical:Klemmschelle
+technical:Spanplattenschraube
+
+# Normative edili
+technical:DIN 4108
+technical:DIN 18531
+technical:FLL-Richtlinie
+technical:ZVDH-Merkblatt
+technical:EnEV
+technical:GEG
+
+# Sistemi fotovoltaici
+technical:Photovoltaik-Unterkonstruktion
+technical:Photovoltaik-Modulunterkonstruktionen
+technical:PV-Anlage
+technical:Solargenerator
+technical:Wechselrichter
+technical:Modulrahmen
+
+# Marchi edili
+product:Würth
+product:Hilti
+product:Simpson
+product:Fischer
+product:SFS
+product:Ejot

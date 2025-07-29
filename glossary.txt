@@ -1,12 +1,39 @@
-# Glossario personalizzato per progetto Falz
+# Glossario personalizzato per progetti Riwega/Anticaduta
 # Formato: tipo:termine oppure solo termine (default: prodotto)
 
-# Nomi prodotti
+# Nomi prodotti originali
 product:Falz Single
 product:Falz
 product:Single
 product:Myriad
 product:Infinity
+product:SafeGuard Smart
+product:Skyfix-Z
+
+# Sistemi anticaduta Riwega
+product:Riwega safetymania
+product:LUX-top
+product:RIALTO
+product:Dynamic
+product:RED
+product:REDbau
+
+# Linee prodotti tecniche Riwega
+product:Protector Line
+product:Superior Line
+product:Eurostandard Line
+product:AIR Stop Line
+product:eternitycomfort
+product:planus
+product:EVALON
+
+# Componenti anticaduta
+product:Anschlagpunkte
+product:Sicherheitsdachhaken
+product:Steigtritte
+product:Laufroste
+product:Schneefangsysteme
+product:Photovoltaik-Modulunterkonstruktionen
 
 # Strumenti (che non devono essere tradotti come font)
 product:Dachziegel
@@ -17,17 +44,62 @@ product:Schraubendreher
 product:Bohrer
 product:Säge
 
-# Termini tecnici specifici
+# Terminologia tecnica anticaduta
+technical:Absturzsicherung
+technical:Sicherheitsgeländer
+technical:Seilsicherungssystem
+technical:Seilunterstützte Zugangstechnik
+technical:Anschlagpunkt
+technical:Einzelanschlagpunkt
+technical:Sekuranten
+technical:Lifeline
+technical:Sicherheitsleine
+
+# Materiali e sistemi edilizi
+material:EVALON
+material:Dampfbremse
+material:Dampfsperre
+material:Unterspannbahn
+material:Unterdeckbahn
 technical:EPDM
 technical:TPO
+
+# Sistemi tetto
+technical:Steildach
+technical:Flachdach
+technical:Gründach
+technical:Photovoltaik-Unterkonstruktion
+technical:Belüftung
+technical:Abdichtung
+technical:Luftdichtheit
+
+# Unità e misure tecniche
+technical:kN
 technical:kN/m
+technical:kN/m²
+technical:daN
+technical:22 kN
+technical:12 kN
+technical:2,5 kN
 technical:kg/m²
 technical:N/mm²
-technical:EVITARE
-technical:AVVERTENZE
-technical:ATTENZIONE
+technical:sd-Wert
+technical:μ-Wert
+technical:U-Wert
+technical:λ-Wert
+
+# Professioni certificate
+professional:IPE
+professional:Installatori Professionali Ergepearl
+professional:Sicherheitskoordinator
+professional:Projektant
+professional:Planer
+professional:Architekt
+professional:Ingenieur
+professional:Thermotechniker
 
 # Marchi e aziende
+product:Riwega
 product:Würth
 product:Hilti
 product:Simpson
@@ -36,6 +108,15 @@ product:Fischer
 # Normative e certificazioni  
 technical:CE
 technical:EN
+technical:EN 795
+technical:EN 517
 technical:DIN
 technical:ISO
 technical:UNI
+technical:UNI 11560
+technical:DGUV
+certification:AISMT
+certification:ANIT
+certification:ARCA
+certification:Klima Haus
+certification:nZEB PARTNERS

@@ -10,7 +10,18 @@
       "Bash(python3:*)",
       "Bash(source:*)",
       "Bash(pip install:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(rm:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(OPENAI_API_KEY=\"dummy\" python src/main.py translate \"Falz single.idml\" -t de --estimate-cost --verbose)",
+      "Bash(pip3 uninstall:*)",
+      "WebFetch(domain:www.riwega.com)",
+      "Bash(chmod:*)",
+      "Bash(unzip:*)",
+      "Bash(cat:*)",
+      "Bash(pip3 install:*)"
     ],
     "deny": []
   }

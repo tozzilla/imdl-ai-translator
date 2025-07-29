@@ -1,0 +1,69 @@
+# Glossario specifico per manuali di sicurezza anticaduta
+# Safety and fall protection specific terminology
+
+# Sistemi anticaduta - NON tradurre i nomi specifici
+product:SafeGuard Smart
+product:SafeGuard
+product:Skyfix-Z
+product:Skyfix
+product:Falz Single
+product:Falz
+product:Myriad
+product:Infinity
+
+# Terminologia tecnica sicurezza - mantenere in tedesco/inglese
+technical:Absturzsicherung
+technical:Anschlagpunkt
+technical:Einzelanschlagpunkt
+technical:Sicherheitsgeländer
+technical:Seilsicherungssystem
+technical:Sekuranten
+technical:Lifeline
+technical:Sicherheitsleine
+technical:PSA
+technical:PSAgA
+technical:DPI
+technical:EPI
+
+# Forze e resistenze - unità tecniche
+technical:kN
+technical:daN
+technical:22 kN
+technical:12 kN
+technical:2,5 kN
+technical:kN/m
+technical:kN/m²
+
+# Normative sicurezza
+technical:EN 795
+technical:EN 517
+technical:DIN 4426
+technical:DGUV 112-198
+technical:DGUV 112-199
+technical:UNI 11560
+technical:BGV C22
+
+# Componenti anticaduta specifici
+technical:Anschlagpunkte
+technical:Sicherheitsdachhaken
+technical:Steigtritte
+technical:Laufroste
+technical:Schneefangsysteme
+technical:Geländersystem
+technical:Sekuranten
+
+# Marchi e certificazioni
+product:RIWEGA
+product:CE
+certification:TÜV
+certification:DGUV
+certification:SUVA
+certification:INAIL
+
+# Ruoli professionali
+professional:Sicherheitskoordinator
+professional:Sicherheitsfachkraft
+professional:Befähigte Person
+professional:Sachkundiger
+professional:Projektant
+professional:Planer

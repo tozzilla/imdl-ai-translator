@@ -27,7 +27,9 @@ class Translator:
         
     def translate_texts(self, texts: List[str], target_language: str, 
                        source_language: Optional[str] = None,
-                       context: Optional[str] = None) -> List[str]:
+                       context: Optional[str] = None,
+                       max_lengths: Optional[List[int]] = None,
+                       compression_mode: str = 'normal') -> List[str]:
         """
         Traduce una lista di testi
         
@@ -36,6 +38,8 @@ class Translator:
             target_language: Lingua di destinazione
             source_language: Lingua di origine (opzionale, auto-detect se None)
             context: Contesto aggiuntivo per migliorare la traduzione
+            max_lengths: Lista lunghezze massime per ogni testo (overflow prevention)
+            compression_mode: Modalità compressione ('normal', 'compact', 'ultra_compact')
             
         Returns:
             Lista di testi tradotti
@@ -51,8 +55,16 @@ class Translator:
             print(f"Traduzione batch {i+1}/{len(batches)} ({len(batch)} testi)...")
             
             try:
+                # Estrai max_lengths per questo batch se forniti
+                batch_max_lengths = None
+                if max_lengths:
+                    start_idx = len(all_translations)
+                    end_idx = start_idx + len(batch)
+                    batch_max_lengths = max_lengths[start_idx:end_idx]
+                
                 batch_translations = self._translate_batch(
-                    batch, target_language, source_language, context
+                    batch, target_language, source_language, context,
+                    batch_max_lengths, compression_mode
                 )
                 all_translations.extend(batch_translations)
                 
@@ -100,7 +112,9 @@ class Translator:
     
     def _translate_batch(self, texts: List[str], target_language: str,
                         source_language: Optional[str] = None,
-                        context: Optional[str] = None) -> List[str]:
+                        context: Optional[str] = None,
+                        max_lengths: Optional[List[int]] = None,
+                        compression_mode: str = 'normal') -> List[str]:
         """
         Traduce un batch di testi
         
@@ -109,13 +123,16 @@ class Translator:
             target_language: Lingua di destinazione
             source_language: Lingua di origine
             context: Contesto aggiuntivo
+            max_lengths: Lunghezze massime per overflow prevention
+            compression_mode: Modalità compressione
             
         Returns:
             Lista di testi tradotti
         """
         # Crea il prompt per la traduzione
         prompt = self._create_translation_prompt(
-            texts, target_language, source_language, context
+            texts, target_language, source_language, context,
+            max_lengths, compression_mode
         )
         
         for attempt in range(self.max_retries):
@@ -139,7 +156,9 @@ class Translator:
     
     def _create_translation_prompt(self, texts: List[str], target_language: str,
                                  source_language: Optional[str] = None,
-                                 context: Optional[str] = None) -> str:
+                                 context: Optional[str] = None,
+                                 max_lengths: Optional[List[int]] = None,
+                                 compression_mode: str = 'normal') -> str:
         """
         Crea il prompt per la traduzione
         
@@ -148,21 +167,42 @@ class Translator:
             target_language: Lingua di destinazione
             source_language: Lingua di origine
             context: Contesto aggiuntivo
+            max_lengths: Lunghezze massime per overflow prevention
+            compression_mode: Modalità compressione
             
         Returns:
             Prompt formattato per l'API
         """
         source_lang_text = f" from {source_language}" if source_language else ""
         
-        prompt = f"""Translate the following texts{source_lang_text} to {target_language}.
+        # Aggiungi istruzioni specifiche per compression mode
+        compression_instructions = self._get_compression_instructions(compression_mode, target_language)
+        
+        # Aggiungi istruzioni per lunghezze massime se specificate
+        length_instructions = ""
+        if max_lengths:
+            length_instructions = "\n\nLENGTH CONSTRAINTS (CRITICAL - DO NOT EXCEED):\n"
+            for i, max_len in enumerate(max_lengths, 1):
+                length_instructions += f"- Text {i}: Maximum {max_len} characters\n"
+            length_instructions += "\nIf a translation would exceed its limit, use these strategies:\n"
+            length_instructions += "- Use technical abbreviations (mm, cm, kg, etc.)\n"
+            length_instructions += "- Remove non-essential words (articles, fillers)\n"
+            length_instructions += "- Use more concise phrasing\n"
+            length_instructions += "- Prioritize technical accuracy over natural flow\n"
+        
+        prompt = f"""You are a professional technical translator. Translate the following texts{source_lang_text} to {target_language}.
 
-IMPORTANT INSTRUCTIONS:
-- Maintain the exact same format and structure
-- Keep any special characters or formatting
-- Preserve the tone and style of the original text
-- Return exactly {len(texts)} translations, one per line
-- Each translation should correspond to the input text at the same position
-- Do not add explanations or additional text
+CRITICAL TRANSLATION RULES:
+- Translate ONLY the provided text segments
+- Maintain exact same format and structure  
+- Keep all special characters and formatting unchanged
+- Preserve technical terminology precisely
+- Return exactly {len(texts)} translations, numbered 1 to {len(texts)}
+- Do NOT add explanations, notes, or extra text
+- Do NOT include words like "Translation:", "Translate:", "Übersetzung:" in output
+- Replace "pag." with "S." for German page references
+- Keep technical terms, product names, and measurements unchanged
+{compression_instructions}{length_instructions}
 """
         
         if context:
@@ -221,7 +261,9 @@ IMPORTANT INSTRUCTIONS:
     
     def translate_single_text(self, text: str, target_language: str,
                              source_language: Optional[str] = None,
-                             context: Optional[str] = None) -> str:
+                             context: Optional[str] = None,
+                             max_length: Optional[int] = None,
+                             compression_mode: str = 'normal') -> str:
         """
         Traduce un singolo testo
         
@@ -230,11 +272,14 @@ IMPORTANT INSTRUCTIONS:
             target_language: Lingua di destinazione
             source_language: Lingua di origine
             context: Contesto aggiuntivo
+            max_length: Lunghezza massima per overflow prevention
+            compression_mode: Modalità compressione
             
         Returns:
             Testo tradotto
         """
-        translations = self.translate_texts([text], target_language, source_language, context)
+        max_lengths = [max_length] if max_length else None
+        translations = self.translate_texts([text], target_language, source_language, context, max_lengths, compression_mode)
         return translations[0] if translations else text
     
     def get_supported_languages(self) -> Dict[str, str]:
@@ -311,3 +356,48 @@ IMPORTANT INSTRUCTIONS:
             'estimated_output_cost_usd': output_cost,
             'estimated_total_cost_usd': total_cost
         }
+    
+    def _get_compression_instructions(self, compression_mode: str, target_language: str) -> str:
+        """
+        Genera istruzioni specifiche per modalità di compressione
+        
+        Args:
+            compression_mode: Modalità compressione
+            target_language: Lingua destinazione
+            
+        Returns:
+            Stringa con istruzioni di compressione
+        """
+        if compression_mode == 'normal':
+            return ""
+        
+        base_instructions = "\n\nCOMPRESSION MODE ACTIVE:"
+        
+        if compression_mode == 'compact':
+            instructions = base_instructions + """
+- Prioritize brevity while maintaining technical accuracy
+- Use standard abbreviations when appropriate (mm, cm, kg, etc.)
+- Remove unnecessary articles and filler words
+- Use concise phrasing over natural flow when space is limited
+- Maintain all technical terminology and safety information"""
+            
+        elif compression_mode == 'ultra_compact':
+            instructions = base_instructions + """
+- MAXIMUM COMPRESSION: Prioritize extreme brevity
+- Use abbreviations extensively (Install. = Installation, Mont. = Montage)
+- Remove all non-essential words (articles, conjunctions, fillers)
+- Use telegraphic style while preserving meaning
+- Convert long phrases to shorter equivalents
+- Maintain critical safety and technical information only"""
+            
+        else:
+            return ""
+        
+        # Aggiungi istruzioni specifiche per lingua
+        if target_language == 'de':
+            instructions += """
+- Use German technical abbreviations: S. (Seite), Abb. (Abbildung), gem. (gemäß)
+- Compound words for brevity where appropriate
+- Remove redundant prepositions and articles"""
+        
+        return instructions

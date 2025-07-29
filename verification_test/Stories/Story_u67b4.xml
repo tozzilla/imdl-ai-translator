@@ -1,0 +1,81 @@
+<ns0:Story xmlns:ns0="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="20.4">
+	<Story Self="u67b4" UserText="true" IsEndnoteStory="false" AppliedTOCStyle="n" TrackChanges="false" StoryTitle="$ID/" AppliedNamedGrid="n">
+		<StoryPreference OpticalMarginAlignment="false" OpticalMarginSize="12" FrameType="TextFrameType" StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection" />
+		<InCopyExportOption IncludeGraphicProxies="true" IncludeAllResources="false" />
+		<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle" Hyphenation="false">
+			<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Bold Italic" PointSize="9" AppliedLanguage="$ID/German">
+				<Properties>
+					<AppliedFont type="string">Metropolis</AppliedFont>
+				</Properties>
+				<Content>Zusätzliche Informationen:</Content>
+			</CharacterStyleRange>
+			<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Black" AppliedLanguage="$ID/German">
+				<Properties>
+					<AppliedFont type="string">Metropolis</AppliedFont>
+				</Properties>
+				<Br />
+				<Br />
+			</CharacterStyleRange>
+		</ParagraphStyleRange>
+		<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/$ID/NormalParagraphStyle" LeftIndent="18" FirstLineIndent="-18" Hyphenation="false" BulletsAndNumberingListType="BulletList">
+			<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" FontStyle="Light Italic" PointSize="7" AppliedLanguage="$ID/German">
+				<Properties>
+					<AppliedFont type="string">Poppins</AppliedFont>
+				</Properties>
+				<Content>RIWEGA S. r. l. Verpflichtet Sich, Diese Hinweise so Korrekt, Vollständig und Aktuell wie Möglich Bereitzustellen und Lehnt Jede Verantwortung für Schreibfehler oder Andere Fehler Innerhalb Derselben ab.</Content>
+				<Br />
+				<Content>Die Ankergeräte von Livith Dürfen Nur von Geeigneten, Qualifizierten und Erfahrenen Personen Installiert werden, die mit Dieser Art von Geräten Gemäß dem Aktuellen Stand der Technik Vertraut sind.</Content>
+				<Br />
+				<Content>Es ist Aufgabe des Installateurs, die Übereinstimmung des Produkts mit den in Diesem Dokument Angegebenen Merkmalen zu überprüfen. Sollte Dies Nicht der Fall Sein, Kontaktieren Sie Bitte Sofort RIWEGA S. r. l.</Content>
+				<Br />
+				<Content>Alle Produkte, die Gegenstand Dieser Installationsanweisungen sind, Dürfen Nicht als Ankergeräte Zur Absturzsicherung Verwendet werden, Bevor Sie Installiert sind.</Content>
+				<Br />
+				<Content>Die Livith-Ankergeräte müssen Sicher Installiert werden, Ohne den Arbeiter Einem Absturzrisiko Auszusetzen.</Content>
+				<Br />
+				<Content>Es ist Aufgabe des Installateurs, Geeignete Schutzmaßnahmen Gegen Absturz aus der Höhe Während der Installation der Produkte, die Gegenstand Dieses Dokuments sind, Vorzusehen, und RIWEGA S. r. l. Lehnt Jede Verantwortung Diesbezüglich ab.</Content>
+				<Br />
+				<Content>Die Installateure müssen Sicherstellen, Dass die Unterkonstruktion für die Befestigung des Ankergeräts Geeignet ist. Im Zweifelsfall muss ein Qualifizierter Techniker Hinzugezogen werden.</Content>
+				<Br />
+				<Content>Die Abdichtung der Dachabdeckung muss Fachgerecht Durchgeführt werden, Unter Einhaltung der Anwendbaren Richtlinien, und RIWEGA S. r. l. Lehnt Jegliche Verantwortung in Dieser Angelegenheit ab.</Content>
+				<Br />
+				<Content>Es muss Darauf Geachtet werden, Dass der Edelstahl Nicht mit Schleifstaub oder Stahlwerkzeugen in Kontakt Kommt, da es zu Oberflächenkorrosionserscheinungen Kommen kann, die Nicht RIWEGA S. r. l. Zuzuschreiben sind.</Content>
+				<Br />
+				<Content>Es wird Empfohlen, Dass die Fachgerechte Befestigung der Absturzsicherungsanlage Durch Fotos der Entsprechenden Montagebedingungen Dokumentiert wird.</Content>
+				<Br />
+				<Content>Auf Ihren Edelstahlgeräten Dürfen Keine Verzinkten Befestigungen Verwendet werden, Wenn eine Potenziell Feuchte Atmosphäre Vorliegt, um das Risiko der Galvanischen Korrosion der Befestigung zu Vermeiden.</Content>
+				<Br />
+				<Content>In Maritimer oder Besonders Aggressiver Umgebung wird Dringend Davon Abgeraten, Befestigungselemente zu Verwenden, die Nicht aus Nichtrostendem Stahl Aisi 316 oder A4 70 Bestehen.</Content>
+				<Br />
+				<Content>Unter Einer Hbs-Schraube Versteht Man die Hbs-Schraube von Rothoblaas, mit der die Produkte Livith, wo in den Vorliegenden Anweisungen als Geeignet Angegeben, Berechnet und Geprüft Wurden.</Content>
+				<Br />
+				<Content>Unter Vgs-Schraube Versteht Man die Vgs-Schraube von Rothoblaas, mit der die Produkte Livith, wo in den Vorliegenden Angaben als Geeignet Angegeben, Berechnet und Geprüft Wurden.</Content>
+				<Br />
+				<Content>für Schraube DIN 571 Versteht Man eine Beliebige DIN 571-Zertifizierte Schraube, mit der die Livith-Produkte, wo in Diesen Anweisungen als Geeignet Angegeben, Berechnet und Geprüft Wurden.</Content>
+				<Br />
+				<Content>Immer die Oberfläche Nivellieren, um die Vollständige Auflage der Grundplatte zu Gewährleisten.</Content>
+				<Br />
+				<Content>Für die Installationsmethoden von Befestigungen am Bestand (Holzschrauben, Chemische und Mechanische Befestigung) ist es Unerlässlich, Auch die Installationsanweisungen des Befestigungsherstellers Sorgfältig zu Befolgen, Zusätzlich zu den in Diesem Dokument Angegebenen Anweisungen. Sollten Diese Sich Widersprechen oder im Falle Irgendwelcher Zweifel, Kontaktieren Sie Sofort RIWEGA S. r. l.</Content>
+				<Br />
+				<Content>Alle in Diesen Anweisungen Angegebenen Befestigungen auf Holz sind Gültig bei Einer Mindestdichte des Holzes von 350 kg/m3.</Content>
+				<Br />
+				<Content>Alle Befestigungen in Stahlbeton, die in Diesen Anweisungen Angegeben sind, Gelten für eine Mindestbetonklasse von C20/25 und sind von den Firmen Mungo oder Bossong.</Content>
+				<Br />
+				<Content>Für die Verwendung des Chemischen Ankers Reinigen Sie Immer das Loch Vor dem Einsetzen / Einspritzen des Ankers.</Content>
+				<Br />
+				<Content>Alle in Diesen Anweisungen Angegebenen Befestigungselemente sind bei RIWEGA S. r. l. Erhältlich (Siehe Katalog für Ankergeräte).</Content>
+				<Br />
+				<Content>Verschiedene Befestigungen als die Zuvor Genannten Gelten als Geeignet, Sofern Sie Gleichwertige oder überlegene Eigenschaften Aufweisen.</Content>
+				<Br />
+				<Content>RIWEGA S. r. l. Lehnt Jede Verantwortung ab, die mit Fehlerhaften Befestigungswahl oder der Verwendung von Befestigungen, die von den Oben Angegebenen Abweichen, Verbunden ist.</Content>
+				<Br />
+				<Content>RIWEGA S. r. l. überlässt die Überprüfung der Eignung der Befestigungen und der Darunterliegenden Strukturen, an Denen die Geräte Befestigt sind, Einem Qualifizierten Berechnungsingenieur, eine Überprüfung, die Nicht Durch die in Diesem Dokument Enthaltenen Befestigungshinweise Ersetzt werden kann.</Content>
+				<Br />
+				<Content>In Jedem Fall wird Empfohlen, Dass die Befestigung des Geräts an der Struktur Immer von Einem Qualifizierten Techniker überprüft wird.</Content>
+				<Br />
+				<Content>Indem Sie den in Diesem Dokument Enthaltenen Befestigungshinweisen Folgen, können Sie die Erstellung der Technischen Unterlagen für die Abdeckung Direkt bei Livith Spa Anfordern.</Content>
+				<Br />
+				<Content>Die Minimalen Abmessungen des Strukturellen Elements, die in den Tabellen der Befestigungen Angegeben sind, Wurden Festgelegt, um die Einhaltung der Lokalen Prüfungen Bezüglich der Befestigung Allein (Abstände von den Rändern, Rückbiegung, Durchstanzen) zu Gewährleisten, Garantieren Jedoch in Keiner Weise die Überprüfung der Widerstandsfähigkeit des Strukturellen Elements Gegen die Vom Ankergerät übertragenen Belastungen.</Content>
+			</CharacterStyleRange>
+		</ParagraphStyleRange>
+	</Story>
+</ns0:Story>
