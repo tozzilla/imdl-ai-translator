@@ -195,7 +195,7 @@ class TextExtractor:
                 'CONTENUTO', 'SOMMARIO', 'APPENDICE', 'ALLEGATO', 'RIFERIMENTO',
                 'DESCRIZIONE', 'SPECIFICA', 'REQUISITO', 'PROCEDURA', 'OPERAZIONE',
                 # Nuove aggiunte richieste
-                'FISSAGGI', 'CODICE', 'PARTE', 'POSIZIONE', 'FINITURA'
+                'FISSAGGI', 'CODICE', 'PARTE', 'POSIZIONE', 'FINITURA', 'LINEA'
             }
             
             # Se è una parola italiana comune, deve essere tradotta
