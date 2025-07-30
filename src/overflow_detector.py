@@ -53,6 +53,26 @@ class OverflowDetector:
             'pt': 1.10,  # Portoghese: +10% più lungo
         }
         
+        # Keywords che indicano contenuto diagramma/flowchart
+        self.diagram_keywords = {
+            # Parole chiave tedesche per diagrammi
+            'überprüfung', 'inspektion', 'prüfung', 'kontrolle', 'verfahren',
+            'dokumentation', 'installation', 'montage', 'wartung', 'funktionalität',
+            'komponenten', 'bauteile', 'system', 'verformung', 'beschädigung',
+            'effizienz', 'qualität', 'zertifizierung', 'phase', 'schritt',
+            'prozess', 'ablauf', 'arbeitsverfahren', 'sichtprüfung', 'funktionsprüfung',
+            
+            # Parole chiave italiane equivalenti
+            'ispezione', 'controllo', 'procedura', 'documentazione', 'installazione',
+            'montaggio', 'manutenzione', 'funzionalità', 'componenti', 'sistema',
+            'deformazione', 'danneggiamento', 'efficienza', 'qualità', 'certificazione',
+            'fase', 'passo', 'processo', 'flusso', 'verifica', 'controllo visivo',
+            
+            # Termini operativi comuni
+            'ja', 'nein', 'ok', 'nicht ok', 'sì', 'no', 'verificare', 'sostituire',
+            'riparare', 'mantenere', 'installare', 'rimuovere', 'pulire'
+        }
+        
         # Metriche caratteri per font comuni (caratteri per punto)
         self.font_metrics = {
             'arial': 2.1,
@@ -480,4 +500,285 @@ class OverflowDetector:
         if risk_counts['critical'] > 0:
             recommendations.append(f"🚨 {risk_counts['critical']} testi a rischio critico - richiesta intervento manuale")
         
+        return recommendations
+    
+    def detect_diagram_frames(self, frame_metrics: Dict[str, TextFrameMetrics], 
+                            stories_data: Dict) -> Dict[str, Dict]:
+        """
+        Rileva automaticamente frame che contengono diagrammi o flowchart
+        
+        Args:
+            frame_metrics: Metriche dei frame dal documento
+            stories_data: Dati delle stories per analisi testo
+            
+        Returns:
+            Dizionario frame_id -> informazioni diagramma rilevato
+        """
+        diagram_frames = {}
+        
+        for frame_id, metrics in frame_metrics.items():
+            # Analizza caratteristiche del frame
+            diagram_score = self._calculate_diagram_score(metrics, stories_data)
+            
+            if diagram_score >= 0.6:  # Soglia per considerare un frame come diagramma
+                diagram_info = {
+                    'diagram_score': diagram_score,
+                    'frame_metrics': metrics,
+                    'risk_factors': self._identify_diagram_risk_factors(metrics, stories_data),
+                    'compression_priority': self._calculate_compression_priority(metrics, diagram_score),
+                    'recommended_strategies': self._get_diagram_specific_strategies(metrics, diagram_score)
+                }
+                diagram_frames[frame_id] = diagram_info
+                
+                logger.info(f"Rilevato frame diagramma: {frame_id} (score: {diagram_score:.2f})")
+        
+        return diagram_frames
+    
+    def _calculate_diagram_score(self, metrics: TextFrameMetrics, stories_data: Dict) -> float:
+        """
+        Calcola un punteggio (0-1) che indica quanto probabilmente il frame contiene un diagramma
+        """
+        score = 0.0
+        
+        # 1. Analisi dimensioni - i diagrammi tendono ad essere più quadrati
+        aspect_ratio = metrics.width / max(metrics.height, 1)
+        if 0.7 <= aspect_ratio <= 1.4:  # Circa quadrato
+            score += 0.2
+        elif 0.5 <= aspect_ratio <= 2.0:  # Rettangolare ma non troppo
+            score += 0.1
+        
+        # 2. Analisi densità testo - i diagrammi hanno meno testo per area
+        area = metrics.width * metrics.height
+        char_density = metrics.char_count / max(area, 1)
+        if char_density < 0.5:  # Bassa densità di testo
+            score += 0.3
+        elif char_density < 1.0:
+            score += 0.2
+        
+        # 3. Analisi contenuto testuale
+        text_score = self._analyze_diagram_text_content(metrics, stories_data)
+        score += text_score * 0.4  # Peso maggiore per il contenuto
+        
+        # 4. Analisi font size - i diagrammi spesso usano font più piccoli
+        if metrics.font_size <= 10.0:
+            score += 0.1
+        
+        return min(score, 1.0)
+    
+    def _analyze_diagram_text_content(self, metrics: TextFrameMetrics, stories_data: Dict) -> float:
+        """
+        Analizza il contenuto testuale per parole chiave tipiche dei diagrammi
+        """
+        content_score = 0.0
+        
+        # Cerca il testo associato a questo frame nelle stories
+        frame_text = self._extract_frame_text(metrics.frame_id, stories_data)
+        if not frame_text:
+            return 0.0
+        
+        text_lower = frame_text.lower()
+        keyword_matches = 0
+        
+        # Conta occorrenze di parole chiave diagramma
+        for keyword in self.diagram_keywords:
+            if keyword in text_lower:
+                keyword_matches += 1
+        
+        # Punteggio basato su densità di parole chiave
+        if keyword_matches >= 3:
+            content_score += 0.8
+        elif keyword_matches >= 2:
+            content_score += 0.6
+        elif keyword_matches >= 1:
+            content_score += 0.4
+        
+        # Bonus per pattern tipici di flowchart
+        flowchart_patterns = [
+            r'\b(ja|nein)\b',  # Decisioni tedesche
+            r'\b(sì|no)\b',    # Decisioni italiane
+            r'\b(step|schritt|fase)\s*\d+',  # Numerazione passi
+            r'->', '→', '↓', '↑',  # Frecce direzionali
+            r'\?',  # Punti interrogativi (decisioni)
+        ]
+        
+        for pattern in flowchart_patterns:
+            if re.search(pattern, text_lower, re.IGNORECASE):
+                content_score += 0.1
+        
+        return min(content_score, 1.0)
+    
+    def _extract_frame_text(self, frame_id: str, stories_data: Dict) -> str:
+        """
+        Estrae il testo associato a un frame dalle stories data
+        """
+        # Semplificazione: concatena tutto il testo trovato
+        # In un'implementazione più sofisticata, dovremmo mappare frame_id a contenuto specifico
+        all_text = ""
+        
+        for story_name, story_data in stories_data.items():
+            if 'root' in story_data:
+                # Estrai tutto il testo dalla story
+                for elem in story_data['root'].iter():
+                    if elem.text:
+                        all_text += elem.text + " "
+                    if elem.tail:
+                        all_text += elem.tail + " "
+        
+        return all_text
+    
+    def _identify_diagram_risk_factors(self, metrics: TextFrameMetrics, stories_data: Dict) -> List[str]:
+        """
+        Identifica fattori di rischio specifici per overflow in diagrammi
+        """
+        risk_factors = []
+        
+        # 1. Frame piccoli con molto testo
+        area = metrics.width * metrics.height
+        if area < 10000 and metrics.char_count > 100:  # Area piccola, molto testo
+            risk_factors.append("Frame piccolo con testo denso")
+        
+        # 2. Font size piccolo (difficile da ridurre ulteriormente)
+        if metrics.font_size <= 9.0:
+            risk_factors.append("Font già molto piccolo")
+        
+        # 3. Margini stretti
+        top, right, bottom, left = metrics.inset_spacing
+        if max(top, right, bottom, left) < 3.0:
+            risk_factors.append("Margini interni molto stretti")
+        
+        # 4. Testo con molte parole tecniche lunghe
+        frame_text = self._extract_frame_text(metrics.frame_id, stories_data)
+        if frame_text:
+            avg_word_length = sum(len(word) for word in frame_text.split()) / max(len(frame_text.split()), 1)
+            if avg_word_length > 8:  # Parole mediamente lunghe (tipico del tedesco tecnico)
+                risk_factors.append("Terminologia tecnica complessa")
+        
+        # 5. Alto rischio overflow già stimato
+        if metrics.estimated_overflow_risk > 1.2:
+            risk_factors.append("Alto rischio overflow previsto")
+        
+        return risk_factors
+    
+    def _calculate_compression_priority(self, metrics: TextFrameMetrics, diagram_score: float) -> str:
+        """
+        Calcola priorità di compressione per frame diagramma
+        """
+        if diagram_score >= 0.8 and metrics.estimated_overflow_risk >= 1.3:
+            return "critical"
+        elif diagram_score >= 0.7 and metrics.estimated_overflow_risk >= 1.1:
+            return "high"
+        elif diagram_score >= 0.6:
+            return "medium"
+        else:
+            return "low"
+    
+    def _get_diagram_specific_strategies(self, metrics: TextFrameMetrics, diagram_score: float) -> List[str]:
+        """
+        Suggerisce strategie specifiche per diagrammi
+        """
+        strategies = []
+        
+        # Strategie base per tutti i diagrammi
+        if diagram_score >= 0.6:
+            strategies.extend([
+                "use_technical_abbreviations",  # Usa abbreviazioni tecniche specifiche
+                "compress_procedural_language",  # Comprimi linguaggio procedurale
+                "simplify_decision_points"  # Semplifica punti di decisione
+            ])
+        
+        # Strategie aggressive per casi critici
+        if diagram_score >= 0.8 or metrics.estimated_overflow_risk >= 1.2:
+            strategies.extend([
+                "ultra_compact_mode",  # Modalità ultra-compatta
+                "remove_redundant_terms",  # Rimuovi termini ridondanti
+                "use_symbols_over_words"  # Usa simboli al posto di parole dove possibile
+            ])
+        
+        # Strategie specifiche per font piccoli
+        if metrics.font_size <= 9.0:
+            strategies.append("avoid_font_reduction")  # Evita ulteriore riduzione font
+        
+        return strategies
+    
+    def generate_diagram_detection_report(self, diagram_frames: Dict[str, Dict]) -> Dict[str, Any]:
+        """
+        Genera report sui diagrammi rilevati
+        """
+        if not diagram_frames:
+            return {
+                'summary': {
+                    'total_diagrams': 0,
+                    'message': 'Nessun frame diagramma rilevato'
+                }
+            }
+        
+        # Statistiche di base
+        total_diagrams = len(diagram_frames)
+        priority_counts = {'critical': 0, 'high': 0, 'medium': 0, 'low': 0}
+        avg_score = 0.0
+        
+        for frame_info in diagram_frames.values():
+            priority = frame_info['compression_priority']
+            priority_counts[priority] += 1
+            avg_score += frame_info['diagram_score']
+        
+        avg_score /= total_diagrams
+        
+        # Identifica i più problematici
+        critical_frames = [
+            (frame_id, info) for frame_id, info in diagram_frames.items()
+            if info['compression_priority'] == 'critical'
+        ]
+        
+        report = {
+            'summary': {
+                'total_diagrams': total_diagrams,
+                'average_diagram_score': round(avg_score, 3),
+                'priority_distribution': priority_counts,
+                'critical_frames_count': len(critical_frames)
+            },
+            'critical_frames': [
+                {
+                    'frame_id': frame_id,
+                    'diagram_score': info['diagram_score'],
+                    'risk_factors': info['risk_factors'],
+                    'recommended_strategies': info['recommended_strategies'][:3]  # Prime 3
+                }
+                for frame_id, info in critical_frames[:5]  # Max 5 esempi
+            ],
+            'recommendations': self._generate_diagram_recommendations(diagram_frames, priority_counts),
+            'next_steps': [
+                "Applicare compressione ultra-aggressiva ai frame critici",
+                "Verificare manualmente i diagrammi più complessi",
+                "Considerare riduzione margini per frame ad alta densità",
+                "Testare leggibilità dopo compressione testo"
+            ]
+        }
+        
+        return report
+    
+    def _generate_diagram_recommendations(self, diagram_frames: Dict[str, Dict], 
+                                        priority_counts: Dict[str, int]) -> List[str]:
+        """
+        Genera raccomandazioni basate sui diagrammi rilevati
+        """
+        recommendations = []
+        
+        total = sum(priority_counts.values())
+        critical_percentage = (priority_counts['critical'] / max(total, 1)) * 100
+        
+        if critical_percentage > 30:
+            recommendations.append("🚨 Alto numero di diagrammi critici - richiede intervento manuale")
+            recommendations.append("💡 Considera pre-processing aggressivo per ridurre complessità")
+        elif critical_percentage > 10:
+            recommendations.append("⚠️ Alcuni diagrammi critici - monitora attentamente")
+        else:
+            recommendations.append("✅ Maggior parte dei diagrammi gestibili automaticamente")
+        
+        if priority_counts['critical'] + priority_counts['high'] > total * 0.5:
+            recommendations.append("💡 Attiva modalità --diagram-mode per ottimizzazioni specifiche")
+        
+        if total > 10:
+            recommendations.append("📊 Documento ricco di diagrammi - considera workflow specializzato")
+            
         return recommendations

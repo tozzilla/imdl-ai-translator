@@ -64,3 +64,6 @@ backup/
 htmlcov/
 .pytest_cache/
 .mypy_cache/
+
+# ClaudPoint checkpoint system
+.checkpoints/

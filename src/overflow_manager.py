@@ -45,6 +45,8 @@ class OverflowManager:
             'compact_numbers',       # Compatta numeri e unità
         ]
         
+        # I pattern procedurali verranno caricati al primo utilizzo
+        
         # Dizionario abbreviazioni tecniche tedesche
         self.german_abbreviations = {
             # Misure e unità
@@ -89,6 +91,105 @@ class OverflowManager:
             'equipaggiamento di protezione individuale': 'PSA',
             'dispositivo anticaduta': 'Absturzsich.',
             'sistema di sicurezza': 'Sich.syst.',
+            
+            # === TERMINOLOGIA DIAGRAMMI E PROCEDURE ===
+            
+            # Fasi operative
+            'dokumentenphase': 'Dok.phase',
+            'inspektionsphase': 'Inspektion',
+            'überprüfungsphase': 'Prüfphase',
+            'vorbereitung': 'Vorberei.',
+            'durchführung': 'Durchf.',
+            'nachbereitung': 'Nachberei.',
+            'systemüberprüfung': 'Systemprüf.',
+            'funktionalitätsprüfung': 'Funkt.prüf.',
+            'qualitätskontrolle': 'Qual.kontr.',
+            
+            # Dokumentazione tecnica
+            'wiederbeschaffung': 'Wiederbesc.',
+            'beschaffung': 'Beschaf.',
+            'bauakte': 'Bauakte',
+            'technisches dachdokument': 'Techn.Dachdok.',
+            'installationsakte': 'Install.akte',
+            'bedienungsanleitung': 'Bedien.anl.',
+            'wartungsanleitung': 'Wart.anl.',
+            'wartungsanleitungen': 'Wart.anl.',
+            'verfügbare dokumentation': 'Verfügb.Dok.',
+            'dokumentation verfügbar': 'Dok.verfügb.',
+            'teilweise verfügbar': 'Teilw.verfügb.',
+            
+            # Procedure ispettive
+            'sichtprüfung': 'Sichtpr.',
+            'funktionsprüfung': 'Funkt.pr.',
+            'instrumentelle prüfung': 'Instrum.pr.',
+            'messtechnische prüfung': 'Messtech.pr.',
+            'abdeckungsverhältnisse': 'Abdeck.verh.',
+            'gehäuse inspizieren': 'Gehäuse inspi.',
+            'komponenten prüfen': 'Komp.prüf.',
+            'gerätekonfiguration': 'Geräte-config',
+            'systemkonfiguration': 'System-config',
+            
+            # Azioni e controlli
+            'überprüfen sie': 'prüfen Sie',
+            'kontrollieren sie': 'kontrolli. Sie',
+            'inspizieren sie': 'inspizi. Sie',
+            'sicherstellen': 'sicherst.',
+            'gewährleisten': 'gewährl.',
+            'befolgen sie': 'befolg. Sie',
+            'beachten sie': 'beacht. Sie',
+            'berücksichtigen': 'berücks.',
+            'durchführen': 'durchf.',
+            'ausführen': 'ausf.',
+            'visionieren': 'vision.',
+            
+            # Componenti e parti
+            'komponenten': 'Komp.',
+            'bauteile': 'Baut.',
+            'einzelteile': 'Einzelt.',
+            'ersatzteile': 'Ersatzt.',
+            'verschleißteile': 'Verschl.t.',
+            'verschleißkittel': 'Verschl.kitt.',
+            'befestigungselemente': 'Befest.elem.',
+            'verbindungselemente': 'Verbind.elem.',
+            'anschlusselemente': 'Anschl.elem.',
+            
+            # Stati e condizioni
+            'beschädigte komponenten': 'beschäd.Komp.',
+            'verformte komponenten': 'verform.Komp.',
+            'korrosion': 'Korros.',
+            'verschleiß': 'Verschl.',
+            'abnutzung': 'Abnut.',
+            'verformung': 'Verform.',
+            'integritätsprüfung': 'Integr.prüf.',
+            'zustandsprüfung': 'Zust.prüf.',
+            
+            # Efficienza e prestazioni  
+            'effizienz der beweglichen teile': 'Effiz.bewegl.Teile',
+            'bewegliche teile': 'bewegl.Teile',
+            'korrekte montage': 'korr.Montage',
+            'ordnungsgemäße installation': 'ordnungsg.Install.',
+            'fachgerechte montage': 'fachger.Mont.',
+            
+            # Processo e workflow
+            'verfahren zur inspektion': 'Inspekt.verfahr.',
+            'inspektionsverfahren': 'Inspekt.verfahr.',
+            'prüfverfahren': 'Prüfverfahr.',
+            'ablaufverfahren': 'Ablaufverfahr.',
+            'arbeitsverfahren': 'Arbeitsverfahr.',
+            'grundstrukturen': 'Grundstrukt.',
+            'installationsakte': 'Install.akte',
+            'angemessene dokumentation': 'angem.Dok.',
+            
+            # Risultati e azioni
+            'ersetzen sie': 'ersetz. Sie',
+            'austauschen': 'austausch.',
+            'erneuern': 'erneu.',
+            'zertifizierung': 'Zertif.',
+            'neue zertifizierung': 'neue Zertif.',
+            'freigeben der dokumentation': 'Freig.Dok.',
+            'dokumentation freigeben': 'Dok.freigeb.',
+            'installation': 'Install.',
+            'installationsbereiche': 'Install.bereich.',
         }
         
         # Pattern per rimuovere ridondanze
@@ -435,6 +536,41 @@ class OverflowManager:
         
         return compressed_texts
     
+    def process_diagram_frames(self, diagram_frames: Dict[str, Dict], 
+                             text_segments: List[str]) -> List[str]:
+        """
+        Processa frame diagramma con compressione specifica
+        
+        Args:
+            diagram_frames: Dizionario frame rilevati come diagrammi
+            text_segments: Lista testi da processare
+            
+        Returns:
+            Lista testi processati con compressione diagramma
+        """
+        processed_texts = []
+        
+        for i, text in enumerate(text_segments):
+            # Verifica se questo testo appartiene a un frame diagramma
+            # (semplificazione: usa indice per associazione)
+            frame_id = f"frame_{i}"
+            
+            if frame_id in diagram_frames:
+                diagram_info = diagram_frames[frame_id]
+                strategies = diagram_info['recommended_strategies']
+                
+                # Applica compressione specifica per diagrammi
+                compressed_text = self.apply_diagram_specific_compression(text, strategies)
+                processed_texts.append(compressed_text)
+                
+                logger.info(f"Applicata compressione diagramma a frame {frame_id}: "
+                          f"{len(text)} -> {len(compressed_text)} caratteri")
+            else:
+                # Usa compressione standard
+                processed_texts.append(text)
+        
+        return processed_texts
+    
     def generate_compression_report(self, resolutions: List[OverflowResolution]) -> Dict[str, Any]:
         """Genera report sulle compressioni applicate"""
         
@@ -504,3 +640,345 @@ class OverflowManager:
             recommendations.append("💡 Considera regolazione font size o frame per casi critici")
         
         return recommendations
+    
+    def apply_diagram_specific_compression(self, text: str, strategies: List[str]) -> str:
+        """
+        Applica compressione specifica per contenuti diagramma
+        
+        Args:
+            text: Testo da comprimere
+            strategies: Lista strategie specifiche da applicare
+            
+        Returns:
+            Testo compresso con strategie diagramma
+        """
+        result = text
+        
+        for strategy in strategies:
+            if strategy == "use_technical_abbreviations":
+                result = self._apply_diagram_abbreviations(result)
+            elif strategy == "compress_procedural_language":
+                result = self._compress_procedural_language(result)
+            elif strategy == "simplify_decision_points":
+                result = self._simplify_decision_points(result)
+            elif strategy == "ultra_compact_mode":
+                result = self._apply_ultra_compact_mode(result)
+            elif strategy == "remove_redundant_terms":
+                result = self._remove_diagram_redundancies(result)
+            elif strategy == "use_symbols_over_words":
+                result = self._replace_words_with_symbols(result)
+        
+        return result
+    
+    def _apply_diagram_abbreviations(self, text: str) -> str:
+        """
+        Applica abbreviazioni specifiche per diagrammi (oltre a quelle standard)
+        """
+        result = text
+        
+        # Abbreviazioni extra per diagrammi
+        diagram_specific_abbrevs = {
+            # Azioni comuni nei flowchart
+            'durchführung der inspektion': 'Inspektion',
+            'durchführung der prüfung': 'Prüfung',
+            'durchführung der kontrolle': 'Kontrolle',
+            'visueller nachweis': 'vis.Nachweis',
+            'visueller prüfung': 'vis.Prüf.',
+            'visuelle inspektion': 'vis.Inspekt.',
+            'visuelle kontrolle': 'vis.Kontr.',
+            
+            # Risultati e stati
+            'funktionalität ist gewährleistet': 'Funkt.gewährl.',
+            'funktionalität nicht gewährleistet': 'Funkt.NICHT gew.',
+            'zustand ist in ordnung': 'Zustand OK',
+            'zustand nicht in ordnung': 'Zustand NICHT OK',
+            'prüfung erfolgreich': 'Prüf.erfolgr.',
+            'prüfung nicht erfolgreich': 'Prüf.NICHT erfolgr.',
+            
+            # Azioni correttive
+            'ersetzen und neue zertifizierung': 'Ersetz.+neue Zertif.',
+            'austauschen und prüfen': 'Austausch+Prüf.',
+            'reparieren und testen': 'Repar.+Test',
+            'reinigen und kontrollieren': 'Reinig.+Kontr.',
+            
+            # Decision points
+            'ist die funktion gewährleistet': 'Funkt.gewährl.?',
+            'sind die komponenten in ordnung': 'Komp.OK?',
+            'ist das system funktionsfähig': 'System funkt.?',
+            'sind schäden vorhanden': 'Schäden vorh.?',
+        }
+        
+        # Applica abbreviazioni specifiche diagrammi
+        for full_term, abbrev in diagram_specific_abbrevs.items():
+            pattern = r'\b' + re.escape(full_term) + r'\b'
+            result = re.sub(pattern, abbrev, result, flags=re.IGNORECASE)
+        
+        # Poi applica abbreviazioni standard
+        return self._apply_abbreviations(result)
+    
+    def _compress_procedural_language(self, text: str) -> str:
+        """
+        Comprimi linguaggio procedurale tipico dei diagrammi
+        """
+        result = text
+        
+        # Pattern procedurali da comprimere
+        procedural_compressions = [
+            # Istruzioni esplicite -> forma imperativa breve
+            (r'\bsie müssen (.+?) durchführen\b', r'\1'),  # "Sie müssen X durchführen" -> "X"
+            (r'\bes ist notwendig (.+?) zu prüfen\b', r'\1 prüfen'),  # "Es ist notwendig X zu prüfen" -> "X prüfen"
+            (r'\bstellen sie sicher dass\b', r'sicherstellen:'),  # "Stellen Sie sicher dass" -> "sicherstellen:"
+            
+            # Eliminazione di cortesie e formalità
+            (r'\bbitte beachten sie\b', r'beachten'),
+            (r'\bes wird empfohlen\b', r'empfohlen:'),
+            (r'\bwir empfehlen\b', r'empfohlen:'),
+            
+            # Semplificazione costruzioni condizionali
+            (r'\bwenn (.+?), dann (.+?)$', r'\1 → \2'),  # "Wenn X, dann Y" -> "X → Y"
+            (r'\bfalls (.+?), (.+?)$', r'\1 → \2'),  # "Falls X, Y" -> "X → Y"
+            
+            # Semplificazione domande
+            (r'\bist (.+?) in ordnung\?', r'\1 OK?'),  # "Ist X in Ordnung?" -> "X OK?"
+            (r'\bfunktioniert (.+?) ordnungsgemäß\?', r'\1 funkt.?'),  # "Funktioniert X ordnungsgemäß?" -> "X funkt.?"
+        ]
+        
+        for pattern, replacement in procedural_compressions:
+            result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
+        
+        return result
+    
+    def _simplify_decision_points(self, text: str) -> str:
+        """
+        Semplifica punti di decisione nei flowchart
+        """
+        result = text
+        
+        # Semplificazioni per decisioni binarie
+        decision_simplifications = [
+            # Risposte Si/No
+            (r'\bja, (.+?)\b', r'Ja → \1'),  # "Ja, weitermachen" -> "Ja → weitermachen"
+            (r'\bnein, (.+?)\b', r'Nein → \1'),  # "Nein, stoppen" -> "Nein → stoppen"
+            
+            # Stati OK/Non OK
+            (r'\bin ordnung: (.+?)\b', r'OK: \1'),
+            (r'\bnicht in ordnung: (.+?)\b', r'NICHT OK: \1'),
+            
+            # Eliminazione di "ist" ridondante
+            (r'\bist ok\b', r'OK'),
+            (r'\bist nicht ok\b', r'NICHT OK'),
+            (r'\bist in ordnung\b', r'OK'),
+            (r'\bist nicht in ordnung\b', r'NICHT OK'),
+            
+            # Compressione azioni condizionali
+            (r'\bweiter zu (.+?)\b', r'→ \1'),  # "weiter zu Schritt 2" -> "→ Schritt 2"
+            (r'\bgehe zu (.+?)\b', r'→ \1'),  # "gehe zu Phase 3" -> "→ Phase 3"
+        ]
+        
+        for pattern, replacement in decision_simplifications:
+            result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
+        
+        return result
+    
+    def _apply_ultra_compact_mode(self, text: str) -> str:
+        """
+        Applica modalità di compressione ultra-aggressiva per casi critici
+        """
+        result = text
+        
+        # Sostituzioni ultra-compatte per emergenza
+        ultra_compact_replacements = {
+            # Eliminazione articoli dove possibile
+            'der': '', 'die': '', 'das': '',
+            'des': '', 'dem': '', 'den': '',
+            
+            # Eliminazione preposizioni ridondanti
+            'von der': 'v.',
+            'zu der': 'z.',
+            'in der': 'i.',
+            'mit der': 'm.',
+            'für die': 'f.',
+            
+            # Abbreviazioni estreme per parole comuni
+            'und': '&',
+            'oder': '|',
+            'aber': 'aber',  # Manteniamo per chiarezza
+            'dann': '→',
+            'nach': '→',
+            'vor': '←',
+            
+            # Numeri e unicità
+            'erste': '1.',
+            'zweite': '2.',
+            'dritte': '3.',
+            'vierte': '4.',
+            'fünfte': '5.',
+        }
+        
+        # Applica sostituzioni solo se necessario (modalità di emergenza)
+        for full, compact in ultra_compact_replacements.items():
+            pattern = r'\b' + re.escape(full) + r'\b'
+            result = re.sub(pattern, compact, result, flags=re.IGNORECASE)
+        
+        # Rimuovi spazi doppi creati dalle rimozioni
+        result = re.sub(r'\s+', ' ', result)
+        
+        return result.strip()
+    
+    def _remove_diagram_redundancies(self, text: str) -> str:
+        """
+        Rimuove ridondanze specifiche dei diagrammi
+        """
+        result = text
+        
+        # Pattern ridondanti tipici dei diagrammi
+        diagram_redundancies = [
+            # Ripetizioni di concetti
+            (r'\bprüfung der prüfung\b', 'Prüfung'),
+            (r'\bkontrolle der kontrolle\b', 'Kontrolle'),
+            (r'\binspektion der inspektion\b', 'Inspektion'),
+            
+            # Frasi tipiche ridondanti
+            (r'\bweitere weitere\b', 'weitere'),
+            (r'\bnochmals nochmal\b', 'nochmals'),
+            (r'\berneut wieder\b', 'erneut'),
+            
+            # Eliminazione di ripetizioni implicite nei diagrammi
+            (r'\bdurchführung der durchführung\b', 'durchführung'),
+            (r'\büberprüfung der überprüfung\b', 'Überprüfung'),
+        ]
+        
+        for pattern, replacement in diagram_redundancies:
+            result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
+        
+        return result
+    
+    def _replace_words_with_symbols(self, text: str) -> str:
+        """
+        Sostituisce parole con simboli dove appropriato per diagrammi
+        """
+        result = text
+        
+        # Sostituzioni parole -> simboli per diagrammi
+        word_to_symbol_replacements = {
+            # Direzioni e frecce
+            'nach oben': '↑',
+            'nach unten': '↓', 
+            'nach links': '←',
+            'nach rechts': '→',
+            'weiter': '→',
+            'zurück': '←',
+            
+            # Stati e simboli
+            'richtig': '✓',
+            'korrekt': '✓',
+            'falsch': '✗',
+            'inkorrekt': '✗',
+            'warnung': '⚠',
+            'achtung': '⚠',
+            'fehler': '✗',
+            'ok': '✓',
+            
+            # Matematici
+            'plus': '+',
+            'minus': '-',
+            'gleich': '=',
+            'größer': '>',
+            'kleiner': '<',
+            
+            # Altri simboli utili
+            'und': '&',  # Solo in contesti molto compatti
+            'prozent': '%',
+            'grad': '°',
+            'millimeter': 'mm',
+            'zentimeter': 'cm',
+            'meter': 'm',
+        }
+        
+        for word, symbol in word_to_symbol_replacements.items():
+            pattern = r'\b' + re.escape(word) + r'\b'
+            result = re.sub(pattern, symbol, result, flags=re.IGNORECASE)
+        
+        return result
+    
+    def get_layout_suggestions(self, frame_metrics, overflow_risk: float) -> list:
+        """
+        Genera suggerimenti di layout per frame con overflow
+        
+        Args:
+            frame_metrics: Metriche del frame
+            overflow_risk: Rischio overflow (1.0 = 100%)
+            
+        Returns:
+            Lista suggerimenti layout
+        """
+        suggestions = []
+        
+        # Suggerimento riduzione font se overflow alto
+        if overflow_risk > 1.2:
+            suggestions.append({
+                'type': 'font_adjustment',
+                'action': 'reduce_font_size',
+                'current_value': getattr(frame_metrics, 'font_size', 12.0),
+                'suggested_value': max(8.0, getattr(frame_metrics, 'font_size', 12.0) * 0.9),
+                'expected_benefit': 'Riduce overflow del 15-20%',
+                'priority': 'high'
+            })
+        
+        # Suggerimento riduzione margini se overflow moderato
+        if overflow_risk > 1.1:
+            suggestions.append({
+                'type': 'margin_adjustment', 
+                'action': 'reduce_margins',
+                'current_value': 6.0,
+                'suggested_value': 3.0,
+                'expected_benefit': 'Aumenta area disponibile del 10%',
+                'priority': 'medium'
+            })
+        
+        return suggestions
+    
+    def generate_graphics_report(self, diagram_frames: dict, overflow_predictions: list) -> dict:
+        """
+        Genera report specifico per elementi grafici
+        
+        Args:
+            diagram_frames: Dizionario frame diagramma rilevati
+            overflow_predictions: Lista predizioni overflow
+            
+        Returns:
+            Report completo elementi grafici
+        """
+        if not diagram_frames:
+            return {
+                'status': 'no_graphics',
+                'message': 'Nessun elemento grafico rilevato'
+            }
+        
+        # Calcola statistiche base
+        total_graphics = len(diagram_frames)
+        critical_count = sum(1 for info in diagram_frames.values() 
+                           if info['compression_priority'] == 'critical')
+        
+        # Calcola rischio complessivo
+        total_risk = sum(info['frame_metrics'].estimated_overflow_risk 
+                        for info in diagram_frames.values())
+        avg_risk = total_risk / total_graphics if total_graphics > 0 else 0
+        
+        return {
+            'status': 'graphics_detected',
+            'summary': {
+                'total_graphics': total_graphics,
+                'critical_count': critical_count,
+                'overall_risk': avg_risk
+            },
+            'translation_impact': {
+                'overall_overflow_risk': avg_risk,
+                'compression_needed': max(0, int((avg_risk - 1.0) * 100)) if avg_risk > 1.0 else 0
+            },
+            'recommendations': {
+                'flowcharts': ['Usa simboli per decisioni', 'Comprimi linguaggio procedurale'],
+                'procedures': ['Numera passi', 'Usa forme imperative'],
+                'technical_diagrams': ['Abbreviazioni standard', 'Layout ottimizzato']
+            }
+        }

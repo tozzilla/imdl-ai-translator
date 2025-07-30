@@ -108,7 +108,7 @@ class TranslationMemory:
         Returns:
             ID della traduzione inserita
         """
-        context_hash = self._compute_context_hash(context, document_type)
+        context_hash = self._compute_context_hash(context, document_type, target_lang)
         
         try:
             cursor = self.conn.execute("""
@@ -146,7 +146,7 @@ class TranslationMemory:
         Returns:
             Dizionario con la traduzione trovata o None
         """
-        context_hash = self._compute_context_hash(context, document_type)
+        context_hash = self._compute_context_hash(context, document_type, target_lang)
         
         cursor = self.conn.execute("""
             SELECT * FROM translations
@@ -319,18 +319,22 @@ class TranslationMemory:
         return [dict(row) for row in cursor]
         
     def _compute_context_hash(self, context: Optional[str], 
-                            document_type: Optional[str]) -> str:
+                            document_type: Optional[str], 
+                            target_lang: Optional[str] = None) -> str:
         """
         Calcola un hash del contesto per raggruppare traduzioni simili
+        CRITICAL: Include target_lang per evitare contaminazione tra lingue
         
         Args:
             context: Contesto testuale
-            document_type: Tipo di documento
+            document_type: Tipo di documento  
+            target_lang: Lingua target (ESSENZIALE per cache separato)
             
         Returns:
-            Hash del contesto
+            Hash del contesto inclusa la lingua target
         """
-        context_str = f"{context or ''}{document_type or ''}"
+        # CRITICO: Includi lingua target per separare cache per lingua
+        context_str = f"{context or ''}{document_type or ''}{target_lang or ''}"
         return hashlib.md5(context_str.encode()).hexdigest()[:8]
         
     def export_tmx(self, output_path: str, source_lang: str, 

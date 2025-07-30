@@ -21,7 +21,11 @@
       "Bash(chmod:*)",
       "Bash(unzip:*)",
       "Bash(cat:*)",
-      "Bash(pip3 install:*)"
+      "Bash(pip3 install:*)",
+      "Bash(true)",
+      "Bash(git reset:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }

@@ -151,12 +151,13 @@ class TextExtractor:
         
         return text_elements
     
-    def _is_translatable_text(self, text: str) -> bool:
+    def _is_translatable_text(self, text: str, lang: str = None) -> bool:
         """
         Determina se un testo è traducibile (esclude codici, numeri puri, etc.)
         
         Args:
             text: Testo da valutare
+            lang: Codice lingua target per dizionari specifici
             
         Returns:
             True se il testo è traducibile
@@ -180,30 +181,142 @@ class TextExtractor:
         # MA NON parole italiane comuni che potrebbero essere in maiuscolo
         # E NON esclude numeri puri (che devono essere preservati)
         if re.match(r'^[A-Z0-9_]+$', text_clean) and not text_clean.isdigit():
-            # Lista di parole italiane comuni che devono essere tradotte anche se in maiuscolo
-            italian_words_to_translate = {
-                'EVITARE', 'LEGNO', 'CALCESTRUZZO', 'ACCIAIO', 'METALLO', 'PLASTICA', 'VETRO',
-                'INSTALLAZIONE', 'MONTAGGIO', 'FISSAGGIO', 'SICUREZZA', 'PROTEZIONE', 
-                'ATTENZIONE', 'PERICOLO', 'AVVERTENZA', 'MANUALE', 'ISTRUZIONI',
-                'SISTEMA', 'ELEMENTO', 'COMPONENTE', 'DISPOSITIVO', 'STRUTTURA',
-                'SUPERFICIE', 'MATERIALE', 'PRODOTTO', 'UTILIZZARE', 'VERIFICARE',
-                'CONTROLLARE', 'ASSICURARE', 'SEGUIRE', 'RISPETTARE',
-                # Aggiunte nuove parole non tradotte
-                'INDICE', 'INTRODUZIONE', 'AVVERTENZE', 'MARCATURA', 'ASSISTENZA',
-                'CAPITOLO', 'SEZIONE', 'PARAGRAFO', 'PAGINA', 'FIGURA', 'TABELLA',
-                'ESEMPIO', 'NOTA', 'IMPORTANTE', 'AVVISO', 'INFORMAZIONE',
-                'CONTENUTO', 'SOMMARIO', 'APPENDICE', 'ALLEGATO', 'RIFERIMENTO',
-                'DESCRIZIONE', 'SPECIFICA', 'REQUISITO', 'PROCEDURA', 'OPERAZIONE',
-                # Nuove aggiunte richieste
-                'FISSAGGI', 'CODICE', 'PARTE', 'POSIZIONE', 'FINITURA', 'LINEA',
-                # Parole dal manuale SafeGuard
-                'GUIDA', 'MESSA', 'OPERA', 'TARGHETTE', 'ACCESSO', 'USO',
-                'CERTIFICATI', 'DISPOSITIVI', 'ISPEZIONE', 'CONDIZIONI', 'GARANZIA',
-                'INDICAZIONI', 'MANUTENZIONE'
+            
+            # === DIZIONARI SPECIFICI PER LINGUA ===
+            # Risolve contaminazione crociata nelle traduzioni
+            
+            # === PAROLE ESSENZIALI DA TRADURRE SEMPRE ===
+            # Set di parole SafeGuard critiche che DEVONO essere in tutti i dizionari
+            safeguard_essential_words = {
+                'LINEA', 'GUIDA', 'ISPEZIONE', 'SICUREZZA', 'PROTEZIONE',
+                'INSTALLAZIONE', 'MONTAGGIO', 'ASSEMBLAGGIO', 'SISTEMA', 'COMPONENTE', 'COMPONENTI', 'DISPOSITIVO',
+                'MANUALE', 'ISTRUZIONI', 'PROCEDURA', 'OPERAZIONE', 'CONTROLLO',
+                'VERIFICA', 'VERIFICARE', 'CONTROLLARE', 'MANUTENZIONE', 'ASSISTENZA',
+                'GARANZIA', 'CONDIZIONI', 'ATTENZIONE', 'PERICOLO', 'AVVERTENZA',
+                'IMPORTANTE', 'AVVISO', 'ACCESSO', 'USO', 'UTILIZZO', 'APPLICAZIONE',
+                'FUNZIONE', 'FISSAGGIO', 'ANCORAGGIO', 'ELEMENTI', 'PARTI'
             }
             
-            # Se è una parola italiana comune, deve essere tradotta
-            if text_clean in italian_words_to_translate:
+            if lang == 'de':
+                # Dizionario completo Italiano → Tedesco
+                words_to_translate = {
+                    'EVITARE', 'LEGNO', 'CALCESTRUZZO', 'ACCIAIO', 'METALLO', 'PLASTICA', 'VETRO',
+                    'INSTALLAZIONE', 'MONTAGGIO', 'ASSEMBLAGGIO', 'FISSAGGIO', 'SICUREZZA', 'PROTEZIONE', 
+                    'ATTENZIONE', 'PERICOLO', 'AVVERTENZA', 'MANUALE', 'ISTRUZIONI',
+                    'SISTEMA', 'ELEMENTO', 'COMPONENTE', 'COMPONENTI', 'DISPOSITIVO', 'STRUTTURA',
+                    'SUPERFICIE', 'MATERIALE', 'PRODOTTO', 'UTILIZZARE', 'VERIFICARE',
+                    'CONTROLLARE', 'ASSICURARE', 'SEGUIRE', 'RISPETTARE',
+                    'INDICE', 'INTRODUZIONE', 'AVVERTENZE', 'MARCATURA', 'ASSISTENZA',
+                    'CAPITOLO', 'SEZIONE', 'PARAGRAFO', 'PAGINA', 'FIGURA', 'TABELLA',
+                    'ESEMPIO', 'NOTA', 'IMPORTANTE', 'AVVISO', 'INFORMAZIONE',
+                    'CONTENUTO', 'SOMMARIO', 'APPENDICE', 'ALLEGATO', 'RIFERIMENTO',
+                    'DESCRIZIONE', 'SPECIFICA', 'REQUISITO', 'PROCEDURA', 'OPERAZIONE',
+                    'FISSAGGI', 'CODICE', 'PARTE', 'POSIZIONE', 'FINITURA', 'LINEA',
+                    'GUIDA', 'MESSA', 'OPERA', 'TARGHETTE', 'ACCESSO', 'USO',
+                    'CERTIFICATI', 'DISPOSITIVI', 'ISPEZIONE', 'CONDIZIONI', 'GARANZIA',
+                    'INDICAZIONI', 'MANUTENZIONE'
+                }
+                # Aggiunge parole essenziali SafeGuard
+                words_to_translate.update(safeguard_essential_words)
+                
+            elif lang == 'en':
+                # Dizionario COMPLETO per Italiano → Inglese + gestione contaminazione tedesca
+                words_to_translate = {
+                    # === PAROLE ITALIANE COMPLETE (CACHE PULITA) ===
+                    'EVITARE', 'LEGNO', 'CALCESTRUZZO', 'ACCIAIO', 'METALLO', 'PLASTICA', 'VETRO',
+                    'INSTALLAZIONE', 'MONTAGGIO', 'ASSEMBLAGGIO', 'FISSAGGIO', 'SICUREZZA', 'PROTEZIONE',
+                    'ATTENZIONE', 'PERICOLO', 'AVVERTENZA', 'MANUALE', 'ISTRUZIONI',
+                    'SISTEMA', 'ELEMENTO', 'COMPONENTE', 'COMPONENTI', 'DISPOSITIVO', 'STRUTTURA',
+                    'SUPERFICIE', 'MATERIALE', 'PRODOTTO', 'UTILIZZARE', 'VERIFICARE',
+                    'CONTROLLARE', 'ASSICURARE', 'SEGUIRE', 'RISPETTARE',
+                    'INDICE', 'INTRODUZIONE', 'AVVERTENZE', 'MARCATURA', 'ASSISTENZA',
+                    'CAPITOLO', 'SEZIONE', 'PARAGRAFO', 'PAGINA', 'FIGURA', 'TABELLA',
+                    'ESEMPIO', 'NOTA', 'IMPORTANTE', 'AVVISO', 'INFORMAZIONE',
+                    'CONTENUTO', 'SOMMARIO', 'APPENDICE', 'ALLEGATO', 'RIFERIMENTO',
+                    'DESCRIZIONE', 'SPECIFICA', 'REQUISITO', 'PROCEDURA', 'OPERAZIONE',
+                    'FISSAGGI', 'CODICE', 'PARTE', 'POSIZIONE', 'FINITURA',
+                    'GUIDA', 'MESSA', 'OPERA', 'TARGHETTE', 'ACCESSO', 'USO',
+                    'CERTIFICATI', 'DISPOSITIVI', 'ISPEZIONE', 'CONDIZIONI', 'GARANZIA',
+                    'INDICAZIONI', 'MANUTENZIONE', 'LINEA',
+                    
+                    # === PAROLE TEDESCHE ANTI-CONTAMINAZIONE ===
+                    'INSPEKTION', 'WARTUNG', 'SICHERHEIT', 'SCHUTZ', 'WARNUNG',
+                    'ACHTUNG', 'GEFAHR', 'ANLEITUNG', 'HANDBUCH', 'SYSTEM',
+                    'KOMPONENTE', 'GERÄT', 'ELEMENT', 'STRUKTUR', 'MATERIAL',
+                    'PRODUKT', 'INSTALLATION', 'MONTAGE', 'BEFESTIGUNG',
+                    'VERFAHREN', 'PROZEDUR', 'ÜBERPRÜFUNG', 'KONTROLLE',
+                    'PRÜFUNG', 'ZUSTAND', 'QUALITÄT', 'ZERTIFIZIERUNG',
+                    'FÜHRUNG', 'VERWENDUNG', 'GERÄTE', 'BEDINGUNGEN',
+                    'GEWÄHRLEISTUNG', 'INSTANDHALTUNG', 'LINIE',
+                    
+                    # === TERMINI TECNICI SPECIFICI ===
+                    'ANCORAGGIO', 'ANCORAGI', 'VERANKERUNG', 'ANKER',
+                    'BEFESTIGUNGSMITTEL', 'BEFESTIGUNGSVERFAHREN',
+                    'FALLSCHUTZ', 'FALLSCHUTZSYSTEM', 'SAFEGUARD'
+                }
+                # Aggiunge parole essenziali SafeGuard
+                words_to_translate.update(safeguard_essential_words)
+                
+            elif lang == 'fr':
+                # Dizionario ESPANSO Italiano → Francese + anti-contaminazione tedesca
+                words_to_translate = {
+                    # === PAROLE ITALIANE PRINCIPALI ===
+                    'INSTALLAZIONE', 'MONTAGGIO', 'ASSEMBLAGGIO', 'FISSAGGIO', 'SICUREZZA', 'PROTEZIONE',
+                    'ATTENZIONE', 'PERICOLO', 'AVVERTENZA', 'MANUALE', 'ISTRUZIONI',
+                    'SISTEMA', 'ELEMENTO', 'COMPONENTE', 'COMPONENTI', 'DISPOSITIVO', 'STRUTTURA',
+                    'SUPERFICIE', 'MATERIALE', 'PRODOTTO', 'UTILIZZARE', 'VERIFICARE',
+                    'CONTROLLARE', 'ASSICURARE', 'SEGUIRE', 'RISPETTARE',
+                    'INDICE', 'INTRODUZIONE', 'AVVERTENZE', 'ASSISTENZA',
+                    'CAPITOLO', 'SEZIONE', 'PAGINA', 'FIGURA', 'TABELLA',
+                    'ESEMPIO', 'NOTA', 'IMPORTANTE', 'AVVISO', 'INFORMAZIONE',
+                    'CONTENUTO', 'DESCRIZIONE', 'PROCEDURA', 'OPERAZIONE',
+                    'GUIDA', 'ACCESSO', 'USO', 'DISPOSITIVI', 'ISPEZIONE',
+                    'CONDIZIONI', 'GARANZIA', 'MANUTENZIONE', 'LINEA',
+                    
+                    # === ANTI-CONTAMINAZIONE TEDESCA ===
+                    'INSPEKTION', 'WARTUNG', 'SICHERHEIT', 'SCHUTZ', 'WARNUNG',
+                    'HANDBUCH', 'SYSTEM', 'KOMPONENTE', 'INSTALLATION',
+                    'VERFAHREN', 'ÜBERPRÜFUNG', 'LINIE', 'ANLEITUNG',
+                    'BEFESTIGUNG', 'MONTAGE', 'KONTROLLE'
+                }
+                # Aggiunge parole essenziali SafeGuard
+                words_to_translate.update(safeguard_essential_words)
+                
+            elif lang == 'es':
+                # Dizionario ESPANSO Italiano → Spagnolo + anti-contaminazione tedesca
+                words_to_translate = {
+                    # === PAROLE ITALIANE PRINCIPALI ===
+                    'INSTALLAZIONE', 'MONTAGGIO', 'ASSEMBLAGGIO', 'FISSAGGIO', 'SICUREZZA', 'PROTEZIONE',
+                    'ATTENZIONE', 'PERICOLO', 'AVVERTENZA', 'MANUALE', 'ISTRUZIONI',
+                    'SISTEMA', 'ELEMENTO', 'COMPONENTE', 'COMPONENTI', 'DISPOSITIVO', 'STRUTTURA',
+                    'SUPERFICIE', 'MATERIALE', 'PRODOTTO', 'UTILIZZARE', 'VERIFICARE',
+                    'CONTROLLARE', 'SEGUIRE', 'RISPETTARE',
+                    'INDICE', 'INTRODUZIONE', 'ASSISTENZA',
+                    'CAPITOLO', 'SEZIONE', 'PAGINA', 'FIGURA', 'TABELLA',
+                    'IMPORTANTE', 'AVVISO', 'INFORMAZIONE', 'CONTENUTO',
+                    'DESCRIZIONE', 'PROCEDURA', 'OPERAZIONE',
+                    'GUIDA', 'ACCESSO', 'USO', 'DISPOSITIVI', 'ISPEZIONE',
+                    'CONDIZIONI', 'GARANZIA', 'MANUTENZIONE', 'LINEA',
+                    
+                    # === ANTI-CONTAMINAZIONE TEDESCA ===
+                    'INSPEKTION', 'WARTUNG', 'SICHERHEIT', 'SCHUTZ',
+                    'HANDBUCH', 'SYSTEM', 'KOMPONENTE', 'INSTALLATION',
+                    'VERFAHREN', 'LINIE', 'ANLEITUNG', 'BEFESTIGUNG'
+                }
+                # Aggiunge parole essenziali SafeGuard
+                words_to_translate.update(safeguard_essential_words)
+                
+            else:
+                # Default: dizionario base + parole essenziali per retrocompatibilità
+                words_to_translate = {
+                    'INSTALLAZIONE', 'MONTAGGIO', 'SICUREZZA', 'SISTEMA',
+                    'COMPONENTE', 'MANUALE', 'GUIDA', 'ISPEZIONE', 'LINEA'
+                }
+                # Aggiunge sempre le parole essenziali SafeGuard
+                words_to_translate.update(safeguard_essential_words)
+            
+            # Controlla se deve essere tradotta per questa lingua specifica
+            if text_clean in words_to_translate:
                 return True
             
             # Altrimenti escludi come codice/identificatore
