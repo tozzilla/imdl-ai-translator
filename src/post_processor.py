@@ -127,9 +127,64 @@ class TranslationPostProcessor:
                 (r'\bpag\.\s*(\d+)', r'p. \1'),
                 (r'\bpagina\s+(\d+)', r'page \1'),
                 
+                # DECONTAMINAZIONE: Rimuovi eventuali forzature tedesche
+                (r'\bS\.\s*(\d+)', r'p. \1'),  # Converti riferimenti pagina tedeschi
+                (r'\bSeite\s+(\d+)', r'page \1'),  # Converti "Seite" tedesco
+                (r'\bSie\b', 'you'),  # Converti forma di cortesia tedesca
+                (r'\bIhr\b', 'your'),  # Converti possessivo tedesco
+                (r'\bÜbersetzung', 'Translation'),  # Converti "Traduzione" tedesco
+                
                 # Rimozione contaminazioni
                 (r'Translation:\s*', ''),
                 (r'Traduzione:\s*', ''),
+                (r'German:\s*', ''),
+                (r'Deutsch:\s*', ''),
+                
+                # Spazi
+                (r'\s+', ' '),
+                (r'^\s+|\s+$', ''),
+            ],
+            
+            'fr': [
+                # Correzioni per francese
+                (r'\bpag\.\s*(\d+)', r'p. \1'),
+                (r'\bpagina\s+(\d+)', r'page \1'),
+                
+                # DECONTAMINAZIONE: Rimuovi eventuali forzature tedesche
+                (r'\bS\.\s*(\d+)', r'p. \1'),  # Converti riferimenti pagina tedeschi
+                (r'\bSeite\s+(\d+)', r'page \1'),  # Converti "Seite" tedesco
+                (r'\bSie\b', 'vous'),  # Converti forma di cortesia tedesca
+                (r'\bIhr\b', 'votre'),  # Converti possessivo tedesco
+                (r'\bÜbersetzung', 'Traduction'),  # Converti "Übersetzung" tedesco
+                
+                # Rimozione contaminazioni
+                (r'Translation:\s*', ''),
+                (r'Traduzione:\s*', ''),
+                (r'German:\s*', ''),
+                (r'Deutsch:\s*', ''),
+                
+                # Spazi
+                (r'\s+', ' '),
+                (r'^\s+|\s+$', ''),
+            ],
+            
+            'es': [
+                # Correzioni per spagnolo
+                (r'\bpag\.\s*(\d+)', r'p. \1'),
+                (r'\bpagina\s+(\d+)', r'página \1'),
+                
+                # DECONTAMINAZIONE: Rimuovi eventuali forzature tedesche
+                (r'\bS\.\s*(\d+)', r'p. \1'),  # Converti riferimenti pagina tedeschi
+                (r'\bSeite\s+(\d+)', r'página \1'),  # Converti "Seite" tedesco
+                (r'\bSie\b', 'usted'),  # Converti forma di cortesia tedesca
+                (r'\bIhr\b', 'su'),  # Converti possessivo tedesco
+                (r'\bÜbersetzung', 'Traducción'),  # Converti "Übersetzung" tedesco
+                
+                # Rimozione contaminazioni
+                (r'Translation:\s*', ''),
+                (r'Traduzione:\s*', ''),
+                (r'German:\s*', ''),
+                (r'Deutsch:\s*', ''),
                 
                 # Spazi
                 (r'\s+', ' '),
@@ -261,12 +316,28 @@ class TranslationPostProcessor:
         Returns:
             Lista di traduzioni corrette
         """
-        if target_language not in self.correction_rules:
-            logger.warning(f"Nessuna regola di post-processing per lingua: {target_language}")
+        # Mappa nomi lingue completi a codici
+        language_mapping = {
+            'english': 'en',
+            'german': 'de', 
+            'deutsch': 'de',
+            'french': 'fr',
+            'français': 'fr',
+            'spanish': 'es',
+            'español': 'es',
+            'italian': 'it',
+            'italiano': 'it'
+        }
+        
+        # Converti nome lingua se necessario
+        lang_code = language_mapping.get(target_language.lower(), target_language)
+        
+        if lang_code not in self.correction_rules:
+            logger.warning(f"Nessuna regola di post-processing per lingua: {target_language} ({lang_code})")
             return translations
             
         corrected = []
-        rules = self.correction_rules[target_language]
+        rules = self.correction_rules[lang_code]
         
         for i, translation in enumerate(translations):
             corrected_text = self._apply_corrections(translation, rules)

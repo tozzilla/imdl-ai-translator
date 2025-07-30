@@ -41,7 +41,7 @@ class EnhancedTranslationPostProcessor(TranslationPostProcessor):
             (r'Traduzione:\s*', ''),  
             (r'German:\s*', ''),
             (r'Deutsch:\s*', ''),
-            (r'\[TRADUZIONE MANCANTE\]', '[Übersetzung fehlt]'),
+            # NOTA: Placeholder per traduzioni mancanti - RIMOSSO per evitare forzature tedesche
             
             # === FRASI RESIDUE GPT ===
             (r'Bitte Geben Sie.*?\.', ''),

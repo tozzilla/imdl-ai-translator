@@ -34,11 +34,54 @@ python3 src/main.py batch *.idml -t de --model gpt-4-turbo --prevent-overflow --
   
 python3 src/main.py tm --stats
 
-# pulizia cache
+# ============================
+# CACHE MANAGEMENT 🆕
+# ============================
 
-python3 clear_cache.py        # Solo Translation Memory
+# Cache Backup & Restore (NEW - SAFE OPERATIONS)
+python3 cache_backup_manager.py backup --name "pre_migration"  # Create backup
+python3 cache_backup_manager.py list                           # List all backups
+python3 cache_backup_manager.py restore "backup_name"          # Restore backup
+python3 cache_backup_manager.py delete "backup_name"           # Delete backup  
+python3 cache_backup_manager.py diff "backup_name"             # Compare backup vs current
 
-python3 clear_cache.py --all  # Tutte le cache
+# Safe Cache Cleanup (NEW - WITH AUTOMATIC BACKUP)
+python3 cache_safe_cleanup.py                                  # Safe cleanup with backup
+python3 cache_safe_cleanup.py --backup-name "pre_cleanup"      # Custom backup name
+python3 cache_safe_cleanup.py --no-backup --yes                # DANGEROUS: no backup
+
+# Cache Analysis & Verification
+python3 src/main.py tm --stats                                 # Translation Memory stats
+python3 check_english_cache.py                                 # Verify English cache empty
+python3 test_language_cache_separation.py                      # Test cache separation
+
+# Legacy Cache Operations (DEPRECATED - USE SAFE VERSIONS ABOVE)
+python3 clear_contaminated_cache.py                            # Old cleanup method
+python3 clear_cache.py                                         # Original cleanup
+
+# ============================
+# DIAGRAM & FLOWCHART TRANSLATION 🆕
+# ============================
+
+# Enhanced workflow with diagram detection and specialized compression
+python3 translate_idml_main.py SafeGuard_Smart.idml -t de --diagram-mode --model gpt-4-turbo
+python3 translate_idml_main.py document.idml -t de --diagram-mode --ultra-aggressive --verbose
+
+# Test diagram detection and overflow management
+python3 test_diagram_detection.py                              # Test diagram detection
+python3 test_integrated_workflow.py                            # Test complete workflow
+
+# ============================
+# CROSS-LANGUAGE CONTAMINATION FIX 🆕
+# ============================
+
+# Test contamination prevention (IT→DE→EN issue resolved)
+python3 test_cross_contamination_fix.py                        # Test contamination fix
+python3 test_contamination_fix.py                              # Verify language separation
+
+# Enhanced dictionaries with SafeGuard vocabulary
+python3 test_enhanced_dictionaries.py                          # Test dictionary coverage
+python3 test_missing_words.py                                  # Test missing word detection
 
 # ============================
 # OVERFLOW PREVENTION FEATURES 🆕
@@ -78,3 +121,60 @@ python3 src/main.py translate doc.idml -t de --prevent-overflow --overflow-repor
 # 3. Measurement compaction (mm, cm, kg)
 # 4. Grammatical reductions (verbose → concise constructions)
 # 5. Intelligent truncation (sentence/word boundaries)
+
+# ============================
+# RECOMMENDED WORKFLOWS 🎯
+# ============================
+
+# 1. STANDARD SAFEGUARD MANUAL TRANSLATION
+python3 cache_backup_manager.py backup --name "pre_safeguard_$(date +%Y%m%d)"
+python3 translate_idml_main.py SafeGuard_Manual.idml -t de --diagram-mode --model gpt-4-turbo --verbose
+
+# 2. BATCH TRANSLATION WITH CONTAMINATION PREVENTION  
+python3 cache_backup_manager.py backup --name "pre_batch_$(date +%Y%m%d)"
+python3 src/main.py batch *.idml -t de --model gpt-4-turbo --prevent-overflow --check-consistency
+
+# 3. FIRST-TIME SETUP (CLEAN CACHE)
+python3 cache_backup_manager.py backup --name "original_cache"  # Save existing cache
+python3 cache_safe_cleanup.py --backup-name "pre_cleanup"       # Clean with backup
+python3 check_english_cache.py                                  # Verify cache empty
+# Now ready for contamination-free translations
+
+# 4. RECOVERY FROM BACKUP
+python3 cache_backup_manager.py list                            # List available backups
+python3 cache_backup_manager.py restore "backup_name"           # Restore specific backup
+
+# 5. DIAGRAM-HEAVY DOCUMENT WORKFLOW
+python3 test_diagram_detection.py                               # Verify diagram detection
+python3 translate_idml_main.py complex_diagram.idml -t de --diagram-mode --ultra-aggressive --verbose
+
+# ============================
+# TROUBLESHOOTING 🔧
+# ============================
+
+# Issue: German words appearing in English translation
+# Solution: Cache contamination - use language-specific cache
+python3 test_cross_contamination_fix.py                         # Test fix
+python3 cache_safe_cleanup.py                                   # Clean cache if needed
+
+# Issue: Overflow in diagram text
+# Solution: Use diagram mode with aggressive compression
+python3 translate_idml_main.py document.idml -t de --diagram-mode --ultra-aggressive
+
+# Issue: Missing SafeGuard vocabulary
+# Solution: Enhanced dictionaries already include essential terms
+python3 test_enhanced_dictionaries.py                           # Verify coverage
+
+# Issue: Need to recover previous cache
+# Solution: Use backup system
+python3 cache_backup_manager.py list                            # Find backup
+python3 cache_backup_manager.py restore "backup_name"           # Restore
+
+# ============================
+# SYSTEM STATUS CHECKS ✅
+# ============================
+
+python3 src/main.py tm --stats                                  # Overall cache stats
+python3 check_english_cache.py                                  # English cache status
+python3 test_language_cache_separation.py                       # Cache separation test
+python3 cache_backup_manager.py list                            # Available backups

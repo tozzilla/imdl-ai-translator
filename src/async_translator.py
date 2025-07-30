@@ -156,9 +156,24 @@ class AsyncTranslator:
         
         source_lang_text = f" from {source_language}" if source_language else ""
         
+        # Crea prompt specifico per lingua target per evitare contaminazione
+        system_prompt = f"You are a professional technical translator. Translate text{source_lang_text} to {target_language}. CRITICAL RULES: Keep exact formatting, preserve technical terms, never add explanatory text."
+        
+        # Aggiungi regole specifiche per lingua target (evita contaminazione)
+        if target_language.lower() in ['german', 'de', 'deutsch']:
+            system_prompt += " Replace 'pag.' with 'S.' for German page references."
+        elif target_language.lower() in ['english', 'en']:
+            system_prompt += " Use standard English conventions for all terms."
+        elif target_language.lower() in ['french', 'fr', 'français']:
+            system_prompt += " Use standard French conventions for all terms."
+        elif target_language.lower() in ['spanish', 'es', 'español']:
+            system_prompt += " Use standard Spanish conventions for all terms."
+        
+        system_prompt += " Do not include any translation markers or metadata in output."
+        
         messages = [{
             "role": "system",
-            "content": f"You are a professional technical translator. Translate text{source_lang_text} to {target_language}. CRITICAL RULES: Keep exact formatting, preserve technical terms, never add explanatory text, replace 'pag.' with 'S.' for German, do not include translation markers like 'Übersetzung:' in output."
+            "content": system_prompt
         }]
         
         if context:

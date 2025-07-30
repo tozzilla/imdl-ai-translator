@@ -190,6 +190,7 @@ class Translator:
             length_instructions += "- Use more concise phrasing\n"
             length_instructions += "- Prioritize technical accuracy over natural flow\n"
         
+        # Costruisci prompt base senza contaminazione linguistica
         prompt = f"""You are a professional technical translator. Translate the following texts{source_lang_text} to {target_language}.
 
 CRITICAL TRANSLATION RULES:
@@ -199,11 +200,20 @@ CRITICAL TRANSLATION RULES:
 - Preserve technical terminology precisely
 - Return exactly {len(texts)} translations, numbered 1 to {len(texts)}
 - Do NOT add explanations, notes, or extra text
-- Do NOT include words like "Translation:", "Translate:", "Übersetzung:" in output
-- Replace "pag." with "S." for German page references
-- Keep technical terms, product names, and measurements unchanged
-{compression_instructions}{length_instructions}
-"""
+- Do NOT include translation markers or metadata in output
+- Keep technical terms, product names, and measurements unchanged"""
+
+        # Aggiungi regole specifiche per lingua target (evita contaminazione crociata)
+        if target_language.lower() in ['german', 'de', 'deutsch']:
+            prompt += "\n- Replace 'pag.' with 'S.' for German page references"
+        elif target_language.lower() in ['english', 'en']:
+            prompt += "\n- Use standard English conventions (e.g., 'page' for page references)"
+        elif target_language.lower() in ['french', 'fr', 'français']:
+            prompt += "\n- Use standard French conventions (e.g., 'page' for page references)"
+        elif target_language.lower() in ['spanish', 'es', 'español']:
+            prompt += "\n- Use standard Spanish conventions (e.g., 'página' for page references)"
+            
+        prompt += f"\n{compression_instructions}{length_instructions}\n"
         
         if context:
             prompt += f"\nCONTEXT: {context}\n"

@@ -34,12 +34,7 @@ class DomainAwareTranslator:
         # Carica glossario specifico per dominio
         self.glossary = load_project_glossary(project_path or ".", domain)
         
-        # Templates di contesto per domini
-        self.domain_contexts = {
-            'safety': self._get_safety_context(),
-            'construction': self._get_construction_context(),
-            'technical': self._get_technical_context(),
-        }
+        # NOTA: I context templates sono ora generati dinamicamente per lingua
         
         # Impostazioni traduzione
         self.rate_limit_delay = 1.0
@@ -50,39 +45,85 @@ class DomainAwareTranslator:
         self.overflow_detector = OverflowDetector()
         self.overflow_manager = OverflowManager()
     
-    def _get_safety_context(self) -> str:
+    def _get_safety_context(self, target_language: str = 'german') -> str:
         """Contesto specifico per manuali di sicurezza anticaduta"""
-        return """This is a SAFETY MANUAL for fall protection systems. 
+        base_context = """This is a SAFETY MANUAL for fall protection systems. 
 Translation requirements:
-- Use formal German (Sie/Ihr) consistently throughout
 - Maintain precise technical terminology for safety equipment
 - Preserve all product names, model numbers, and certifications
-- Use standard German safety manual language and structure
-- Follow German industrial safety documentation standards
 - Keep regulatory references (EN, DIN, DGUV) unchanged
 - Maintain imperative tone for safety instructions"""
+        
+        # Aggiungi requisiti specifici per lingua
+        if target_language.lower() in ['german', 'de', 'deutsch']:
+            base_context += "\n- Use formal German (Sie/Ihr) consistently throughout\n- Use standard German safety manual language and structure\n- Follow German industrial safety documentation standards"
+        elif target_language.lower() in ['english', 'en']:
+            base_context += "\n- Use formal, professional English throughout\n- Follow standard English safety manual conventions\n- Use clear, direct language appropriate for safety documentation"
+        elif target_language.lower() in ['french', 'fr', 'français']:
+            base_context += "\n- Use formal French (vous) consistently throughout\n- Follow French safety documentation standards\n- Maintain professional tone appropriate for technical safety manuals"
+        elif target_language.lower() in ['spanish', 'es', 'español']:
+            base_context += "\n- Use formal Spanish (usted) consistently throughout\n- Follow Spanish safety documentation conventions\n- Use professional language appropriate for industrial safety manuals"
+        else:
+            base_context += f"\n- Use formal, professional language appropriate for {target_language}\n- Follow standard {target_language} technical documentation conventions"
+            
+        return base_context
     
-    def _get_construction_context(self) -> str:
+    def _get_construction_context(self, target_language: str = 'german') -> str:
         """Contesto specifico per settore edile/costruzioni"""
-        return """This is a CONSTRUCTION/BUILDING manual for roofing systems.
+        base_context = """This is a CONSTRUCTION/BUILDING manual for roofing systems.
 Translation requirements:
-- Use formal German (Sie/Ihr) for professional documentation
 - Maintain precise technical terminology for building materials
 - Preserve all product names, material specifications, and standards
-- Use standard German construction industry language
-- Follow German building documentation conventions
 - Keep building codes and standards (DIN, EN) unchanged
 - Maintain technical precision for measurements and specifications"""
+        
+        # Aggiungi requisiti specifici per lingua
+        if target_language.lower() in ['german', 'de', 'deutsch']:
+            base_context += "\n- Use formal German (Sie/Ihr) for professional documentation\n- Use standard German construction industry language\n- Follow German building documentation conventions"
+        elif target_language.lower() in ['english', 'en']:
+            base_context += "\n- Use formal, professional English for documentation\n- Use standard English construction industry terminology\n- Follow English building documentation conventions"
+        elif target_language.lower() in ['french', 'fr', 'français']:
+            base_context += "\n- Use formal French (vous) for professional documentation\n- Use standard French construction industry language\n- Follow French building documentation conventions"
+        elif target_language.lower() in ['spanish', 'es', 'español']:
+            base_context += "\n- Use formal Spanish (usted) for professional documentation\n- Use standard Spanish construction industry language\n- Follow Spanish building documentation conventions"
+        else:
+            base_context += f"\n- Use formal, professional {target_language} for documentation\n- Use standard {target_language} construction industry terminology"
+            
+        return base_context
     
-    def _get_technical_context(self) -> str:
+    def _get_technical_context(self, target_language: str = 'german') -> str:
         """Contesto generico tecnico"""
-        return """This is a technical installation manual.
+        base_context = """This is a technical installation manual.
 Translation requirements:
-- Use formal German (Sie/Ihr) for professional documentation
 - Maintain precise technical terminology
 - Preserve all product names, model numbers, and certifications
-- Keep measurements, specifications, and standards unchanged
-- Follow German technical documentation standards"""
+- Keep measurements, specifications, and standards unchanged"""
+        
+        # Aggiungi requisiti specifici per lingua
+        if target_language.lower() in ['german', 'de', 'deutsch']:
+            base_context += "\n- Use formal German (Sie/Ihr) for professional documentation\n- Follow German technical documentation standards"
+        elif target_language.lower() in ['english', 'en']:
+            base_context += "\n- Use formal, professional English for documentation\n- Follow standard English technical documentation conventions"
+        elif target_language.lower() in ['french', 'fr', 'français']:
+            base_context += "\n- Use formal French (vous) for professional documentation\n- Follow French technical documentation standards"
+        elif target_language.lower() in ['spanish', 'es', 'español']:
+            base_context += "\n- Use formal Spanish (usted) for professional documentation\n- Follow Spanish technical documentation standards"
+        else:
+            base_context += f"\n- Use formal, professional {target_language} for documentation\n- Follow standard {target_language} technical documentation conventions"
+            
+        return base_context
+    
+    def _get_context_for_domain(self, domain: str, target_language: str) -> str:
+        """Ottiene il contesto appropriato per dominio e lingua"""
+        if domain == 'safety':
+            return self._get_safety_context(target_language)
+        elif domain == 'construction':
+            return self._get_construction_context(target_language)
+        elif domain == 'technical':
+            return self._get_technical_context(target_language)
+        else:
+            # Default a contesto tecnico
+            return self._get_technical_context(target_language)
     
     def translate_texts(self, texts: List[str], target_language: str, 
                        source_language: Optional[str] = None,
@@ -133,10 +174,10 @@ Translation requirements:
             # Estrai lunghezze massime consigliate
             max_lengths = [pred.recommended_max_length for pred in overflow_predictions]
         
-        # Determina il contesto da usare
+        # Determina il contesto da usare (ora dinamico per lingua)
         context = custom_context
-        if not context and self.domain in self.domain_contexts:
-            context = self.domain_contexts[self.domain]
+        if not context:
+            context = self._get_context_for_domain(self.domain, target_language)
         
         # Raggruppa i testi in batch
         batches = self._create_batches(texts)
@@ -245,6 +286,7 @@ Translation requirements:
             max_lengths, compression_mode, target_language
         )
         
+        # Costruisci prompt senza contaminazione linguistica
         prompt = f"""You are a professional technical translator specializing in {self.domain or 'technical'} documentation.
 
 TRANSLATION TASK: Translate the following texts{source_text} to {target_language}.
@@ -252,12 +294,29 @@ TRANSLATION TASK: Translate the following texts{source_text} to {target_language
 {context or "Standard technical translation guidelines apply."}
 
 CRITICAL DOMAIN-SPECIFIC RULES:
-1. CONSISTENCY: Use formal address (Sie/Ihr) consistently throughout ALL translations
-2. PRESERVE UNCHANGED: {protected_list}
-3. TECHNICAL PRECISION: Maintain exact technical terminology and measurements
-4. GERMAN GRAMMAR: Apply proper German capitalization rules (only first word and nouns)
-5. PROFESSIONAL TONE: Use formal, precise language appropriate for technical manuals
-6. FORMAT: Return exactly {len(texts)} numbered translations (1. 2. 3. etc.)
+1. PRESERVE UNCHANGED: {protected_list}
+2. TECHNICAL PRECISION: Maintain exact technical terminology and measurements
+3. PROFESSIONAL TONE: Use formal, precise language appropriate for technical manuals
+4. FORMAT: Return exactly {len(texts)} numbered translations (1. 2. 3. etc.)"""
+
+        # Regole specifiche per lingua target (evita contaminazione)
+        if target_language.lower() in ['german', 'de', 'deutsch']:
+            prompt += "\n5. CONSISTENCY: Use formal address (Sie/Ihr) consistently throughout ALL translations"
+            prompt += "\n6. GERMAN GRAMMAR: Apply proper German capitalization rules (only first word and nouns)"
+        elif target_language.lower() in ['english', 'en']:
+            prompt += "\n5. CONSISTENCY: Use formal, professional language throughout"
+            prompt += "\n6. ENGLISH GRAMMAR: Apply standard English capitalization and grammar rules"
+        elif target_language.lower() in ['french', 'fr', 'français']:
+            prompt += "\n5. CONSISTENCY: Use formal address (vous) consistently throughout"
+            prompt += "\n6. FRENCH GRAMMAR: Apply proper French grammar and capitalization rules"
+        elif target_language.lower() in ['spanish', 'es', 'español']:
+            prompt += "\n5. CONSISTENCY: Use formal address (usted) consistently throughout"
+            prompt += "\n6. SPANISH GRAMMAR: Apply proper Spanish grammar and capitalization rules"
+        else:
+            prompt += f"\n5. CONSISTENCY: Use formal, professional language appropriate for {target_language}"
+            prompt += f"\n6. GRAMMAR: Apply standard {target_language} grammar and capitalization rules"
+            
+        prompt += f"""
 {overflow_instructions}
 
 PROTECTED TERMS IN THIS BATCH:
