@@ -195,7 +195,11 @@ class TextExtractor:
                 'CONTENUTO', 'SOMMARIO', 'APPENDICE', 'ALLEGATO', 'RIFERIMENTO',
                 'DESCRIZIONE', 'SPECIFICA', 'REQUISITO', 'PROCEDURA', 'OPERAZIONE',
                 # Nuove aggiunte richieste
-                'FISSAGGI', 'CODICE', 'PARTE', 'POSIZIONE', 'FINITURA', 'LINEA'
+                'FISSAGGI', 'CODICE', 'PARTE', 'POSIZIONE', 'FINITURA', 'LINEA',
+                # Parole dal manuale SafeGuard
+                'GUIDA', 'MESSA', 'OPERA', 'TARGHETTE', 'ACCESSO', 'USO',
+                'CERTIFICATI', 'DISPOSITIVI', 'ISPEZIONE', 'CONDIZIONI', 'GARANZIA',
+                'INDICAZIONI', 'MANUTENZIONE'
             }
             
             # Se è una parola italiana comune, deve essere tradotta
