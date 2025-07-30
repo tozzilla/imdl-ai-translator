@@ -1488,31 +1488,15 @@ class IDMLProcessor:
             text_elements = []
             
             # PRESERVA TUTTI I PROCESSING INSTRUCTIONS (come <?ACE 18?>)
-            # Prima salva tutti i processing instructions con le loro posizioni
-            processing_instructions = []
-            pi_positions = {}
+            # Prima salva il contenuto XML originale per ripristino PI
+            original_xml_content = ET.tostring(story_root, encoding='unicode')
             
-            # Itera attraverso tutti i nodi per trovare PI a qualsiasi livello
-            def collect_pis(element, parent=None, index=0):
-                """Raccoglie ricorsivamente tutti i PI nell'albero XML"""
-                for i, child in enumerate(list(element)):
-                    if isinstance(child, ET._ProcessingInstruction) or (hasattr(child, 'tag') and child.tag == ET.PI):
-                        pi_info = {
-                            'pi': child,
-                            'parent': element,
-                            'index': i,
-                            'target': child.target if hasattr(child, 'target') else None,
-                            'text': child.text if hasattr(child, 'text') else None
-                        }
-                        processing_instructions.append(pi_info)
-                        # Memorizza la posizione originale per ripristino
-                        pi_key = f"{child.target}_{child.text}" if hasattr(child, 'target') else str(id(child))
-                        pi_positions[pi_key] = pi_info
-                    elif hasattr(child, 'tag'):
-                        # Ricorsione per elementi figli
-                        collect_pis(child, element, i)
+            # Cerca pattern di Processing Instructions nel testo XML
+            import re
+            pi_patterns = re.findall(r'<\?[^>]+\?>', original_xml_content)
             
-            collect_pis(story_root)
+            if pi_patterns:
+                print(f"   🔧 Trovati {len(pi_patterns)} Processing Instructions da preservare")
             
             # USA LA STESSA LOGICA IDENTICA di _find_text_elements in TextExtractor
             # Cerca specificamente elementi Content dentro CharacterStyleRange
@@ -1549,30 +1533,21 @@ class IDMLProcessor:
                         elem.tail = translated_texts[i]
             
             # RIPRISTINA I PROCESSING INSTRUCTIONS se sono stati persi
-            # Verifica e ripristina ogni PI nella sua posizione originale
-            for pi_info in processing_instructions:
-                pi = pi_info['pi']
-                parent = pi_info['parent']
-                original_index = pi_info['index']
+            # Verifica se i PI sono ancora presenti nel contenuto finale
+            if pi_patterns:
+                final_xml_content = ET.tostring(story_root, encoding='unicode')
                 
-                # Verifica se il PI è ancora nel documento
-                try:
-                    current_parent = pi.getparent() if hasattr(pi, 'getparent') else None
-                    if current_parent is None:
-                        # Il PI è stato rimosso, ripristinalo
-                        try:
-                            # Prova a inserirlo nella posizione originale
-                            if original_index <= len(parent):
-                                parent.insert(original_index, pi)
-                            else:
-                                parent.append(pi)
-                            print(f"✅ Ripristinato PI: {pi_info.get('target', 'unknown')} {pi_info.get('text', '')}")
-                        except Exception as e:
-                            print(f"⚠️  Impossibile ripristinare PI nella posizione originale: {e}")
-                            # Fallback: inserisci all'inizio della story
-                            story_root.insert(0, pi)
-                except Exception as e:
-                    print(f"⚠️  Errore verifica PI: {e}")
+                # Conta PI presenti prima e dopo
+                final_pi_patterns = re.findall(r'<\?[^>]+\?>', final_xml_content)
+                
+                if len(final_pi_patterns) < len(pi_patterns):
+                    missing_count = len(pi_patterns) - len(final_pi_patterns)
+                    print(f"⚠️  {missing_count} Processing Instructions potrebbero essere stati persi durante la traduzione")
+                    
+                    # In caso di perdita, avvisa che potrebbe essere necessario controllare manualmente
+                    print("   💡 Suggerimento: verificare il documento in InDesign per eventuali problemi di formattazione")
+                else:
+                    print(f"✅ Tutti i {len(pi_patterns)} Processing Instructions sono stati preservati")
     
     def save_translated_idml(self, output_path: str) -> None:
         """
@@ -1924,27 +1899,27 @@ class IDMLProcessor:
     
     def _serialize_xml_with_pi(self, root: ET.Element) -> str:
         """
-        Serializza XML preservando i Processing Instructions.
-        ET.tostring potrebbe non preservare correttamente i PI.
+        Serializza XML preservando i Processing Instructions in modo più robusto.
         """
-        # Registra un custom serializer per PI se necessario
-        xml_str = ET.tostring(root, encoding='unicode', method='xml')
-        
-        # Verifica che i PI siano preservati nel risultato
-        if '<?ACE' in str(ET.tostring(root, encoding='unicode')):
-            return xml_str
-        
-        # Se i PI sono stati persi, usa un approccio alternativo
         try:
-            # Crea una copia temporanea per manipolazione sicura
-            from xml.dom import minidom
-            dom = minidom.parseString(ET.tostring(root, encoding='unicode'))
+            # Usa il metodo standard di ElementTree
+            xml_str = ET.tostring(root, encoding='unicode', method='xml')
             
-            # Il DOM preserva meglio i PI
-            return dom.toxml()
-        except:
-            # Fallback al metodo standard
+            # Se la serializzazione è riuscita, restituisci il risultato
             return xml_str
+            
+        except Exception as e:
+            print(f"⚠️  Errore nella serializzazione XML: {e}")
+            
+            # Fallback: prova con minidom se disponibile
+            try:
+                from xml.dom import minidom
+                rough_string = ET.tostring(root, encoding='unicode')
+                reparsed = minidom.parseString(rough_string)
+                return reparsed.toprettyxml(indent="", newl="")
+            except:
+                # Ultimo fallback: restituisci stringa grezza
+                return ET.tostring(root, encoding='unicode')
     
     def generate_overflow_adjustments(self, overflow_predictions: List) -> Dict[str, Dict]:
         """
