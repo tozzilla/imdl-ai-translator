@@ -80,6 +80,9 @@ class TextExtractor:
         # Cerca elementi di testo specifici di IDML
         text_elements = self._find_text_elements(story_root)
         
+        # Applica il merging dei line break forzati
+        text_elements = self._merge_forced_line_breaks(text_elements, story_root)
+        
         for elem_info in text_elements:
             element = elem_info['element']
             text_content = elem_info['text']
@@ -92,7 +95,8 @@ class TextExtractor:
                     'attributes': dict(element.attrib),
                     'text_type': elem_info['text_type'],  # 'text' o 'tail'
                     'character_count': len(text_content),
-                    'word_count': len(text_content.split())
+                    'word_count': len(text_content.split()),
+                    'merged_from_breaks': elem_info.get('merged_from_breaks', False)
                 }
                 segments.append(segment)
                 
@@ -429,6 +433,141 @@ class TextExtractor:
         cleaned = cleaned.strip()
         
         return cleaned
+    
+    def _merge_forced_line_breaks(self, text_elements: List[Dict], story_root: ET.Element) -> List[Dict]:
+        """
+        Rileva e unisce testi separati da line break forzati nel mezzo di frasi.
+        
+        IDML può contenere:
+        - <Br/> tags per forced line breaks
+        - Tabs e spazi usati per allineamento che spezzano frasi
+        - Soft returns che dividono il testo in elementi separati
+        
+        Args:
+            text_elements: Lista elementi testo trovati
+            story_root: Root della story per analisi contestuale
+            
+        Returns:
+            Lista elementi con testi uniti dove appropriato
+        """
+        if not text_elements:
+            return text_elements
+        
+        merged_elements = []
+        i = 0
+        
+        while i < len(text_elements):
+            current = text_elements[i]
+            text = current['text']
+            
+            # Criteri per identificare testo che potrebbe continuare
+            # 1. Termina senza punteggiatura finale
+            # 2. Non è un titolo (tutto maiuscolo)
+            # 3. Ha lunghezza ragionevole per essere parte di frase
+            needs_merge = (
+                not re.search(r'[.!?:]\s*$', text) and  # No punteggiatura finale
+                not text.isupper() and  # Non è un titolo
+                len(text) > 5 and  # Non troppo corto
+                i + 1 < len(text_elements)  # C'è un elemento successivo
+            )
+            
+            if needs_merge:
+                # Guarda gli elementi successivi per potenziale continuazione
+                merged_text = text
+                merged_count = 0
+                j = i + 1
+                
+                while j < len(text_elements) and merged_count < 3:  # Max 3 merge per sicurezza
+                    next_elem = text_elements[j]
+                    next_text = next_elem['text']
+                    
+                    # Controlla se il prossimo elemento sembra una continuazione
+                    if self._is_continuation(text, next_text):
+                        # Verifica che siano nello stesso contesto (stesso ParagraphStyleRange)
+                        if self._same_paragraph_context(current, next_elem):
+                            # Unisci con spazio appropriato
+                            separator = ' '
+                            
+                            # Se il testo corrente termina con trattino, potrebbe essere sillabazione
+                            if text.endswith('-'):
+                                # Rimuovi trattino e unisci direttamente
+                                merged_text = merged_text[:-1] + next_text
+                            else:
+                                merged_text = merged_text + separator + next_text
+                            
+                            merged_count += 1
+                            j += 1
+                            
+                            # Se troviamo punteggiatura finale, ferma il merge
+                            if re.search(r'[.!?]\s*$', next_text):
+                                break
+                        else:
+                            break
+                    else:
+                        break
+                
+                # Se abbiamo fatto dei merge, crea elemento unito
+                if merged_count > 0:
+                    merged_elem = current.copy()
+                    merged_elem['text'] = merged_text
+                    merged_elem['merged_from_breaks'] = True
+                    merged_elem['merge_count'] = merged_count
+                    merged_elements.append(merged_elem)
+                    
+                    # Salta gli elementi che sono stati uniti
+                    i = j
+                    continue
+            
+            # Aggiungi elemento non modificato
+            merged_elements.append(current)
+            i += 1
+        
+        # Log merge effettuati
+        merge_count = sum(1 for e in merged_elements if e.get('merged_from_breaks', False))
+        if merge_count > 0:
+            print(f"   📝 Unite {merge_count} frasi spezzate da line break forzati")
+        
+        return merged_elements
+    
+    def _is_continuation(self, prev_text: str, next_text: str) -> bool:
+        """
+        Determina se next_text è probabilmente una continuazione di prev_text.
+        """
+        # Il testo successivo inizia con minuscola (forte indicatore di continuazione)
+        if next_text and next_text[0].islower():
+            return True
+        
+        # Il testo precedente termina con virgola o punto e virgola
+        if re.search(r'[,;]\s*$', prev_text):
+            return True
+        
+        # Il testo precedente termina con congiunzione o preposizione
+        conjunctions = ['e', 'ed', 'o', 'od', 'ma', 'però', 'quindi', 'perché', 
+                       'and', 'or', 'but', 'however', 'therefore', 'because',
+                       'und', 'oder', 'aber', 'jedoch', 'daher', 'weil']
+        
+        words = prev_text.split()
+        if words and words[-1].lower() in conjunctions:
+            return True
+        
+        # Il testo precedente termina con articolo o preposizione
+        articles_preps = ['il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una',
+                         'di', 'a', 'da', 'in', 'con', 'su', 'per', 'tra', 'fra',
+                         'the', 'a', 'an', 'of', 'to', 'from', 'in', 'with', 'on',
+                         'der', 'die', 'das', 'ein', 'eine', 'von', 'zu', 'mit']
+        
+        if words and words[-1].lower() in articles_preps:
+            return True
+        
+        return False
+    
+    def _same_paragraph_context(self, elem1: Dict, elem2: Dict) -> bool:
+        """
+        Verifica se due elementi appartengono allo stesso contesto di paragrafo.
+        """
+        # Per ora assumiamo che elementi consecutivi siano nello stesso contesto
+        # In futuro potremmo verificare il parent ParagraphStyleRange
+        return True
     
     def map_translations_to_segments(self, segments: List[Dict], translations: List[str]) -> Dict[str, List[str]]:
         """

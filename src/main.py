@@ -151,6 +151,21 @@ def main(input_file: Path, output: Optional[Path], target_lang: str,
             click.echo(f"   Documento: {doc_info['filename']}")
             click.echo(f"   Stories trovate: {doc_info['stories_count']}")
         
+        # 1b. Validazione font per lingue non latine
+        font_validation = processor.validate_font_compatibility(target_lang)
+        if font_validation['requires_special_fonts'] and font_validation['warnings']:
+            if not click.confirm("\n⚠️  Trovati potenziali problemi di compatibilità font. Continuare comunque?"):
+                click.echo("Traduzione annullata.")
+                sys.exit(1)
+        
+        # 1c. Controllo grafiche collegate con possibile testo
+        linked_graphics_check = processor.check_linked_graphics_text()
+        if linked_graphics_check['potential_text_graphics'] and verbose:
+            click.echo("\n📌 Nota: alcune grafiche collegate potrebbero contenere testo da tradurre separatamente.")
+        
+        # 1d. Analisi consistenza stili (per validazione post-traduzione)
+        original_style_analysis = processor.analyze_style_consistency()
+        
         # 2. ANALISI PRELIMINARE DEL DOCUMENTO
         if verbose:
             click.echo("🔍 Analisi preliminare documento...")
@@ -535,6 +550,38 @@ def main(input_file: Path, output: Optional[Path], target_lang: str,
             click.echo(f"💾 Salvataggio in {output}...")
         
         processor.save_translated_idml(str(output))
+        
+        # 9a. Validazione post-traduzione
+        if verbose:
+            click.echo("🔍 Validazione documento tradotto...")
+        
+        # Ricarica il documento tradotto per validazione
+        translated_processor = IDMLProcessor(str(output))
+        translated_processor.load_idml()
+        
+        # Validazione integrità XML
+        xml_validation = translated_processor.validate_xml_tag_integrity()
+        
+        # Validazione consistenza stili se richiesta
+        if check_consistency:
+            translated_style_analysis = translated_processor.analyze_style_consistency()
+            style_validation = processor.validate_style_preservation(original_style_analysis, translated_style_analysis)
+            
+            if not style_validation['is_valid'] and style_validation['discrepancies']:
+                click.echo("⚠️  Trovate discrepanze negli stili dopo la traduzione")
+                if verbose:
+                    for discrepancy in style_validation['discrepancies'][:3]:
+                        click.echo(f"   - {discrepancy}")
+        
+        # Genera warning se ci sono errori critici
+        if not xml_validation['is_valid']:
+            click.echo("⚠️  Trovati problemi di integrità XML - verificare il documento in InDesign")
+        
+        # 9b. Genera checklist DTP
+        dtp_checklist = processor.generate_dtp_checklist(
+            target_lang, stats, font_validation, xml_validation, linked_graphics_check
+        )
+        processor.print_dtp_checklist(dtp_checklist)
         
         success_msg = f"🎉 Traduzione completata!\n   File salvato: {output}"
         if detected_domain != 'technical':
